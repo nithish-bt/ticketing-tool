@@ -22,7 +22,7 @@ export const AdminSettingsView: React.FC = () => {
     projects, createProject, deleteProject
   } = useTaskFlow();
 
-  const [activeTab, setActiveTab] = useState('1');
+  const [activeTab, setActiveTab] = useState(currentUser?.role === 'Super Admin' ? '1' : '2');
   const [userModalVisible, setUserModalVisible] = useState(false);
   const [userForm] = Form.useForm();
   
@@ -146,7 +146,8 @@ export const AdminSettingsView: React.FC = () => {
       <Card bordered={false}>
         <Tabs activeKey={activeTab} onChange={setActiveTab}>
           {/* TAB 1: User Directory */}
-          <Tabs.TabPane tab={<span><UserOutlined />User Management</span>} key="1">
+          {isSuperAdmin && (
+            <Tabs.TabPane tab={<span><UserOutlined />User Management</span>} key="1">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <Title level={4} style={{ margin: 0 }}>Organization Directory</Title>
               {isSuperAdmin && (
@@ -203,6 +204,7 @@ export const AdminSettingsView: React.FC = () => {
               ]}
             />
           </Tabs.TabPane>
+          )}
 
           {/* TAB 2: Board Workflow customization */}
           <Tabs.TabPane tab={<span><SettingOutlined />Board Workflow Columns</span>} key="2">
