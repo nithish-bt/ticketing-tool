@@ -46,6 +46,12 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({ issue, open,
   };
 
   const statusOptions = projWorkflow.columns.map(c => c.status);
+  const availableStatuses = statusOptions.filter(st => {
+    if (currentUser?.role === 'Developer' && st === 'Done') return false;
+    return true;
+  });
+
+  const canChangeAssignee = ['Super Admin', 'Project Manager', 'Tester'].includes(currentUser?.role || '');
 
   // Subtasks
   const subTasks = useTaskFlow().issues.filter(i => i.parent_id === issue.id);
@@ -335,10 +341,30 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({ issue, open,
                 style={{ width: '100%' }}
                 disabled={currentUser?.role === 'Viewer'}
               >
-                {statusOptions.map(st => (
+                {availableStatuses.map(st => (
                   <Option key={st} value={st}>{st}</Option>
                 ))}
               </Select>
+              {currentUser?.role === 'Tester' && issue.status === 'In Review' && (
+                <Button 
+                  danger 
+                  style={{ marginTop: 8 }} 
+                  block 
+                  onClick={() => {
+                    // Try to find the last developer who worked on it
+                    const prevDevLog = [...issueActivity].reverse().find(log => {
+                      const u = users.find(user => user.id === log.user_id);
+                      return u?.role === 'Developer';
+                    });
+                    const targetAssignee = prevDevLog ? prevDevLog.user_id : issue.assignee_id;
+                    updateIssue(issue.id, { status: 'In Progress', assignee_id: targetAssignee });
+                    addComment(issue.id, "Testing failed. Returned to developer.");
+                    message.warning("Issue marked as failed and returned to In Progress.");
+                  }}
+                >
+                  Mark as Failed (Return to Dev)
+                </Button>
+              )}
             </div>
 
             {/* Assignee Selector */}
@@ -350,7 +376,7 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({ issue, open,
                 style={{ width: '100%' }}
                 allowClear
                 placeholder="Unassigned"
-                disabled={currentUser?.role === 'Viewer'}
+                disabled={!canChangeAssignee}
               >
                 {users.map(u => (
                   <Option key={u.id} value={u.id}>

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  Card, Button, Tag, Space, Avatar, Input, Select, Modal, Form, 
+import {
+  Card, Button, Tag, Space, Avatar, Input, Select, Modal, Form,
   DatePicker, Typography, Empty, Row, Col, Badge
 } from 'antd';
-import { 
+import {
   PlusOutlined, CalendarOutlined, FileTextOutlined, UserOutlined, StarOutlined
 } from '@ant-design/icons';
 import { useTaskFlow } from '../context/TaskFlowContext';
@@ -18,15 +18,15 @@ interface BacklogViewProps {
 }
 
 export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
-  const { 
+  const {
     currentProject, sprints, issues, epics, users, currentUser,
-    createSprint, startSprint, closeSprint, createIssue, updateIssue 
+    createSprint, startSprint, closeSprint, createIssue, updateIssue
   } = useTaskFlow();
 
   const [isSprintModalVisible, setIsSprintModalVisible] = useState(false);
   const [isIssueModalVisible, setIsIssueModalVisible] = useState(false);
   const [isCloseSprintModalVisible, setIsCloseSprintModalVisible] = useState(false);
-  
+
   const [selectedSprintToClose, setSelectedSprintToClose] = useState<string | null>(null);
   const [selectedRolloverSprint, setSelectedRolloverSprint] = useState<string | null>(null);
 
@@ -40,15 +40,15 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
   const projectSprints = sprints.filter(s => s.project_id === currentProject?.id);
   const activeSprint = projectSprints.find(s => s.status === 'active');
   const inactiveSprints = projectSprints.filter(s => s.status === 'inactive');
-  
+
   // Filtered issues
   const projectIssues = issues.filter(i => i.project_id === currentProject?.id && !i.key.includes('-SUB-'));
-  
+
   const filteredIssues = projectIssues.filter(iss => {
     const matchesEpic = epicFilter ? iss.epic_id === epicFilter : true;
-    const matchesSearch = searchQuery 
-      ? iss.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        iss.key.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch = searchQuery
+      ? iss.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      iss.key.toLowerCase().includes(searchQuery.toLowerCase())
       : true;
     return matchesEpic && matchesSearch;
   });
@@ -76,9 +76,9 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
   const handleSprintSubmit = (values: any) => {
     const { name, dateRange, goal } = values;
     createSprint(
-      name, 
-      dateRange[0].format('YYYY-MM-DD'), 
-      dateRange[1].format('YYYY-MM-DD'), 
+      name,
+      dateRange[0].format('YYYY-MM-DD'),
+      dateRange[1].format('YYYY-MM-DD'),
       goal || ''
     );
     setIsSprintModalVisible(false);
@@ -133,7 +133,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
   const renderIssueItem = (issue: Issue) => {
     const epic = epics.find(e => e.id === issue.epic_id);
     return (
-      <div 
+      <div
         key={issue.id}
         draggable
         onDragStart={(e) => handleDragStart(e, issue.id)}
@@ -147,7 +147,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
           <span className="issue-key-label">{issue.key}</span>
           <span className="issue-title-label">{issue.title}</span>
         </div>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {epic && (
             <Tag color={epic.color || 'blue'} style={{ fontSize: 10, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -185,14 +185,14 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
         {/* Left Column: Epics sidebar */}
         <Col xs={24} md={6}>
           <Card title="Epics" bordered={false} className="epic-sidebar-card">
-            <div 
+            <div
               className={`epic-filter-item ${epicFilter === null ? 'active' : ''}`}
               onClick={() => setEpicFilter(null)}
             >
               All Issues
             </div>
             {epics.filter(e => e.project_id === currentProject?.id).map(e => (
-              <div 
+              <div
                 key={e.id}
                 className={`epic-filter-item ${epicFilter === e.id ? 'active' : ''}`}
                 onClick={() => setEpicFilter(e.id)}
@@ -208,8 +208,8 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
         {/* Right Column: Sprints and Backlog */}
         <Col xs={24} md={18}>
           <div style={{ marginBottom: 16 }}>
-            <Input.Search 
-              placeholder="Search by title or key..." 
+            <Input.Search
+              placeholder="Search by title or key..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{ maxWidth: 400 }}
@@ -218,7 +218,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
 
           {/* 1. Active Sprint Panel */}
           {activeSprint ? (
-            <Card 
+            <Card
               title={
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Space>
@@ -232,10 +232,10 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
                 </div>
               }
               extra={
-                <Button 
-                  type="primary" 
-                  danger 
-                  size="small" 
+                <Button
+                  type="primary"
+                  danger
+                  size="small"
                   onClick={() => {
                     setSelectedSprintToClose(activeSprint.id);
                     setIsCloseSprintModalVisible(true);
@@ -267,7 +267,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
           {inactiveSprints.map(s => {
             const sprintIssuesList = filteredIssues.filter(i => i.sprint_id === s.id);
             return (
-              <Card 
+              <Card
                 key={s.id}
                 title={
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -282,9 +282,9 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
                   </div>
                 }
                 extra={
-                  <Button 
-                    type="primary" 
-                    size="small" 
+                  <Button
+                    type="primary"
+                    size="small"
                     onClick={() => {
                       handleStartSprint(s.id);
                     }}
@@ -310,7 +310,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
           })}
 
           {/* 3. Backlog Panel */}
-          <Card 
+          <Card
             title={
               <Space>
                 <FileTextOutlined />
@@ -391,7 +391,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
               </Form.Item>
             </Col>
           </Row>
-          
+
           <Form.Item name="title" label="Summary" rules={[{ required: true, message: 'Please input issue summary!' }]}>
             <Input placeholder="Keep it short and descriptive" />
           </Form.Item>
@@ -471,8 +471,8 @@ export const BacklogView: React.FC<BacklogViewProps> = ({ onSelectIssue }) => {
         </div>
         <Form layout="vertical">
           <Form.Item label="Move open issues to:">
-            <Select 
-              value={selectedRolloverSprint} 
+            <Select
+              value={selectedRolloverSprint}
               onChange={(val) => setSelectedRolloverSprint(val)}
               placeholder="Select Target Sprint"
               allowClear

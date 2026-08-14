@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Select, Avatar, Dropdown, Button, ConfigProvider, theme, Modal, Form, Input, DatePicker, Row, Col, Space, Typography, message, Badge, List } from 'antd';
+import { Layout, Menu, Select, Avatar, Dropdown, Button, ConfigProvider, theme, Modal, Form, Input, DatePicker, Row, Col, Space, Typography, message, Badge } from 'antd';
 import { 
   DashboardOutlined, 
   OrderedListOutlined, 
@@ -11,7 +11,6 @@ import {
   BulbOutlined,
   BulbFilled,
   BellOutlined,
-  PlusOutlined,
   CalendarOutlined,
   FolderOutlined,
   ClockCircleOutlined,
@@ -42,7 +41,7 @@ const { Option } = Select;
 
 const TaskFlowApp: React.FC = () => {
   const { 
-    currentUser, logout, currentProject, projects, setCurrentProject,
+    currentUser, logout, currentProject,
     currentView, setView, darkMode, toggleDarkMode, users, epics, sprints, createIssue,
     activeTimer, stopTimer, cancelTimer, notifications, markNotificationRead
   } = useTaskFlow();
@@ -132,6 +131,8 @@ const TaskFlowApp: React.FC = () => {
     quickCreateForm.resetFields();
   };
 
+  const canChangeAssignee = ['Super Admin', 'Project Manager', 'Tester'].includes(currentUser?.role || '');
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       {/* Sider Navigation */}
@@ -203,35 +204,7 @@ const TaskFlowApp: React.FC = () => {
         {/* Header toolbar */}
         <Header className="app-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span style={{ fontWeight: 600, color: '#8c8c8c' }}>Project:</span>
-            <Select 
-              value={currentProject?.id} 
-              style={{ width: 220 }}
-              onChange={(id) => {
-                const proj = projects.find(p => p.id === id);
-                if (proj) {
-                  setCurrentProject(proj);
-                  if (proj.type === 'Timesheet') {
-                    setView('Timesheet');
-                  } else if (currentView === 'Timesheet') {
-                    setView('Dashboard');
-                  }
-                }
-              }}
-            >
-              {projects.map(p => (
-                <Option key={p.id} value={p.id}>{p.name} ({p.key})</Option>
-              ))}
-            </Select>
-            <Button 
-              type="primary" 
-              size="small" 
-              icon={<PlusOutlined />} 
-              onClick={() => setIsQuickCreateVisible(true)}
-              disabled={currentUser.role === 'Viewer'}
-            >
-              Quick Create
-            </Button>
+            {/* Removed Project Selector and Quick Create */}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
@@ -376,7 +349,7 @@ const TaskFlowApp: React.FC = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="assignee_id" label="Assignee">
-                <Select placeholder="Select Member" allowClear>
+                <Select placeholder="Select Member" allowClear disabled={!canChangeAssignee}>
                   {users.map(u => (
                     <Option key={u.id} value={u.id}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
