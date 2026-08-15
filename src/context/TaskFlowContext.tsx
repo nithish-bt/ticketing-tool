@@ -75,6 +75,7 @@ const initialUsers: User[] = [
   { id: 'u4', name: 'Shyam', email: 'shyam@taskflow.io', role: 'Developer', organization_id: 'org1'  },
   { id: 'u5', name: 'Vijay', email: 'vijay@taskflow.io', role: 'Developer', organization_id: 'org1' },
   { id: 'u6', name: 'Anand', email: 'anand@taskflow.io', role: 'Viewer', organization_id: 'org1'},
+  { id: 'u7', name: 'Sara', email: 'sara@taskflow.io', role: 'Tester', organization_id: 'org1'},
 ];
 
 const initialProjects: Project[] = [

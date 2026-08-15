@@ -22,6 +22,7 @@ const DEMO_ACCOUNTS = [
   { username: 'maya',    role: 'Team Lead',        color: '#0958d9' },
   { username: 'shyam',   role: 'Developer',        color: '#237804' },
   { username: 'vijay',   role: 'Developer',        color: '#237804' },
+  { username: 'sara',    role: 'Tester',           color: '#eb2f96' },
   { username: 'anand',   role: 'Viewer',           color: '#ad6800' },
 ];
 
@@ -198,9 +199,10 @@ export const LoginScreen: React.FC = () => {
               <Form.Item label={<span className="lp-label">Role</span>} required>
                 <Radio.Group value={selectedRole} onChange={e => setSelectedRole(e.target.value)}
                   buttonStyle="solid" style={{ width: '100%', display: 'flex' }}>
-                  <Radio.Button value="Developer"      style={{ flex: 1, textAlign: 'center' }}>Dev</Radio.Button>
-                  <Radio.Button value="Team Lead"      style={{ flex: 1, textAlign: 'center' }}>Lead</Radio.Button>
-                  <Radio.Button value="Project Manager" style={{ flex: 1, textAlign: 'center' }}>Manager</Radio.Button>
+                  <Radio.Button value="Developer"      style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>Dev</Radio.Button>
+                  <Radio.Button value="Tester"         style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>Tester</Radio.Button>
+                  <Radio.Button value="Team Lead"      style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>Lead</Radio.Button>
+                  <Radio.Button value="Project Manager" style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>Mgr</Radio.Button>
                 </Radio.Group>
               </Form.Item>
               <Form.Item style={{ marginBottom: 12 }}>

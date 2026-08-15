@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Select, Avatar, Dropdown, Button, ConfigProvider, theme, Modal, Form, Input, DatePicker, Row, Col, Space, Typography, message, Badge, List } from 'antd';
+import { Layout, Menu, Select, Avatar, Dropdown, Button, ConfigProvider, theme, Modal, Form, Input, DatePicker, Row, Col, Space, Typography, message, Badge, List, Drawer, FloatButton } from 'antd';
 import { 
   DashboardOutlined, 
   OrderedListOutlined, 
@@ -55,6 +55,7 @@ const TaskFlowApp: React.FC = () => {
   // Local timer ticking state
   const [headerTimerStr, setHeaderTimerStr] = useState('00:00:00');
   const [isHeaderTimerModalVisible, setIsHeaderTimerModalVisible] = useState(false);
+  const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
 
   useEffect(() => {
     let interval: any = null;
@@ -168,9 +169,7 @@ const TaskFlowApp: React.FC = () => {
           <Menu.Item key="Board" icon={<ProjectOutlined />}>
             Active Board
           </Menu.Item>
-          <Menu.Item key="Chat" icon={<MessageOutlined />}>
-            Team Chat
-          </Menu.Item>
+
           <Menu.Item key="Timesheet" icon={<CalendarOutlined />}>
             Timesheet
           </Menu.Item>
@@ -469,6 +468,26 @@ const TaskFlowApp: React.FC = () => {
           </Form>
         </div>
       </Modal>
+
+      {/* Team Chat Drawer & Floating Button */}
+      <Drawer
+        title="Team Chat"
+        placement="right"
+        width={700}
+        onClose={() => setIsChatDrawerOpen(false)}
+        open={isChatDrawerOpen}
+        styles={{ body: { padding: 0 } }}
+      >
+        <TeamChatView />
+      </Drawer>
+
+      <FloatButton
+        icon={<MessageOutlined />}
+        type="primary"
+        style={{ right: 24, bottom: 24, width: 56, height: 56 }}
+        onClick={() => setIsChatDrawerOpen(true)}
+        tooltip="Open Team Chat"
+      />
     </Layout>
   );
 };
