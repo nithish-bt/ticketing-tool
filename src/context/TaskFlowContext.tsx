@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type {
   User, Project, Sprint, Epic, Issue, Comment,
-  Worklog, Notification, ActivityLog, Role, ProjectMember, ChatMessage
+  Worklog, Notification, ActivityLog, Role, ProjectMember, ChatMessage, Meeting
 } from '../types';
 
 interface WorkflowColumn {
@@ -27,6 +27,8 @@ interface TaskFlowContextType {
   chatMessages: ChatMessage[];
   notifications: Notification[];
   workflows: ProjectWorkflow[];
+  meetings: Meeting[];
+  activeMeeting: string | null;
   currentProject: Project | null;
   currentView: string;
   darkMode: boolean;
@@ -63,6 +65,12 @@ interface TaskFlowContextType {
   projectMembers: ProjectMember[];
   addProjectMember: (projectId: string, userId: string, role: Role) => void;
   removeProjectMember: (projectId: string, userId: string) => void;
+  roles: string[];
+  addRole: (role: string) => void;
+  scheduleMeeting: (meetingData: Omit<Meeting, 'id'>) => void;
+  updateMeeting: (meetingId: string, updates: Partial<Meeting>) => void;
+  joinMeeting: (meetingId: string) => void;
+  leaveMeeting: () => void;
 }
 
 const TaskFlowContext = createContext<TaskFlowContextType | undefined>(undefined);
@@ -77,6 +85,8 @@ const initialUsers: User[] = [
   { id: 'u6', name: 'Anand', email: 'anand@taskflow.io', role: 'Viewer', organization_id: 'org1'},
   { id: 'u7', name: 'Sara', email: 'sara@taskflow.io', role: 'Tester', organization_id: 'org1'},
 ];
+
+const initialRoles: string[] = ['Super Admin', 'Project Manager', 'Team Lead', 'Developer', 'Tester', 'Viewer'];
 
 const initialProjects: Project[] = [
   { id: 'p1', name: 'Engineering Core Platform', key: 'ENG', type: 'Scrum', description: 'Core infrastructure, state-of-the-art APIs, and front-end interface.', organization_id: 'org1' },
@@ -177,6 +187,33 @@ const initialProjectMembers: ProjectMember[] = [
   { project_id: 'p2', user_id: 'u6', role: 'Viewer' }
 ];
 
+const initialMeetings: Meeting[] = [
+  {
+    id: 'm1',
+    project_id: 'p1',
+    title: 'Sprint Planning',
+    description: 'Planning the next sprint for the Engineering Core Platform.',
+    start_time: '2026-08-20T10:00:00Z',
+    end_time: '2026-08-20T11:00:00Z',
+    platform: 'Google Meet',
+    link: 'https://meet.google.com/abc-defg-hij',
+    organizer_id: 'u2',
+    attendee_ids: ['u1', 'u2', 'u3', 'u4', 'u5']
+  },
+  {
+    id: 'm2',
+    project_id: 'p1',
+    title: 'Architecture Review',
+    description: 'Reviewing the new Kanban drag-and-drop implementation.',
+    start_time: '2026-08-21T14:00:00Z',
+    end_time: '2026-08-21T15:00:00Z',
+    platform: 'Microsoft Teams',
+    link: 'https://teams.microsoft.com/l/meetup-join/19...',
+    organizer_id: 'u3',
+    attendee_ids: ['u3', 'u4']
+  }
+];
+
 export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Try loading from localStorage
   const loadState = <T,>(key: string, initial: T): T => {
@@ -204,6 +241,9 @@ export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [notifications, setNotifications] = useState<Notification[]>(() => loadState('notifications', initialNotifications));
   const [workflows, setWorkflows] = useState<ProjectWorkflow[]>(() => loadState('workflows', initialWorkflows));
   const [projectMembers, setProjectMembers] = useState<ProjectMember[]>(() => loadState('projectMembers', initialProjectMembers));
+  const [roles, setRoles] = useState<string[]>(() => loadState('roles', initialRoles));
+  const [meetings, setMeetings] = useState<Meeting[]>(() => loadState('meetings', initialMeetings));
+  const [activeMeeting, setActiveMeeting] = useState<string | null>(null);
   
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const loaded = loadState<User | null>('currentUser', null);
@@ -247,13 +287,15 @@ export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('taskflow_notifications', JSON.stringify(notifications));
     localStorage.setItem('taskflow_workflows', JSON.stringify(workflows));
     localStorage.setItem('taskflow_projectMembers', JSON.stringify(projectMembers));
+    localStorage.setItem('taskflow_roles', JSON.stringify(roles));
+    localStorage.setItem('taskflow_meetings', JSON.stringify(meetings));
     localStorage.setItem('taskflow_currentUser', JSON.stringify(currentUser));
     localStorage.setItem('taskflow_currentProject', JSON.stringify(currentProject));
     localStorage.setItem('taskflow_currentView', JSON.stringify(currentView));
     localStorage.setItem('taskflow_darkMode', JSON.stringify(darkMode));
     localStorage.setItem('taskflow_attachments', JSON.stringify(attachments));
     localStorage.setItem('taskflow_activeTimer', JSON.stringify(activeTimer));
-  }, [users, projects, sprints, epics, issues, comments, worklogs, activityLogs, chatMessages, notifications, workflows, projectMembers, currentUser, currentProject, currentView, darkMode, attachments, activeTimer]);
+  }, [users, projects, sprints, epics, issues, comments, worklogs, activityLogs, chatMessages, notifications, workflows, projectMembers, currentUser, currentProject, currentView, darkMode, attachments, activeTimer, meetings]);
 
   // UI routes state
   const setView = (view: string) => {
@@ -678,6 +720,12 @@ export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }]);
   };
 
+  const addRole = (roleName: string) => {
+    if (!roles.includes(roleName)) {
+      setRoles(prev => [...prev, roleName]);
+    }
+  };
+
   // Timer Operations
   const startTimer = (issueId: string) => {
     const issue = issues.find(i => i.id === issueId);
@@ -715,6 +763,42 @@ export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setChatMessages(prev => [...prev, newMsg]);
   };
 
+  const scheduleMeeting = (meetingData: Omit<Meeting, 'id'>) => {
+    const newMeeting: Meeting = {
+      ...meetingData,
+      id: `m_${Date.now()}`
+    };
+    setMeetings(prev => [...prev, newMeeting]);
+
+    // Send notifications to attendees
+    meetingData.attendee_ids.forEach(userId => {
+      if (userId !== currentUser?.id) {
+        sendNotification(userId, 'update', newMeeting.id, `${currentUser?.name || 'Someone'} invited you to a meeting: ${meetingData.title}`);
+      }
+    });
+
+    // Add activity log
+    setActivityLogs(prev => [...prev, {
+      id: `act_${Date.now()}`,
+      issue_id: 'system',
+      user_id: currentUser?.id || 'system',
+      action: `Scheduled a meeting: ${meetingData.title}`,
+      timestamp: new Date().toISOString()
+    }]);
+  };
+
+  const updateMeeting = (meetingId: string, updates: Partial<Meeting>) => {
+    setMeetings(prev => prev.map(m => m.id === meetingId ? { ...m, ...updates } : m));
+  };
+
+  const joinMeeting = (meetingId: string) => {
+    setActiveMeeting(meetingId);
+  };
+
+  const leaveMeeting = () => {
+    setActiveMeeting(null);
+  };
+
   return (
     <TaskFlowContext.Provider value={{
       currentUser,
@@ -729,6 +813,8 @@ export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       chatMessages,
       notifications: notifications.filter(n => n.user_id === currentUser?.id),
       workflows,
+      meetings,
+      activeMeeting,
       currentProject,
       currentView,
       darkMode,
@@ -764,7 +850,13 @@ export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       sendMessage,
       projectMembers,
       addProjectMember,
-      removeProjectMember
+      removeProjectMember,
+      roles,
+      addRole,
+      scheduleMeeting,
+      updateMeeting,
+      joinMeeting,
+      leaveMeeting
     }}>
       {children}
     </TaskFlowContext.Provider>

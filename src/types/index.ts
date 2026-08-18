@@ -1,4 +1,4 @@
-export type Role = 'Super Admin' | 'Project Manager' | 'Team Lead' | 'Developer' | 'Tester' | 'Viewer';
+export type Role = 'Super Admin' | 'Project Manager' | 'Team Lead' | 'Developer' | 'Tester' | 'Viewer' | (string & {});
 
 export type IssueType = 'Story' | 'Task' | 'Bug' | 'Sub-task';
 
@@ -133,4 +133,18 @@ export interface ChatMessage {
   receiver_id: string | null; // null means Team Channel, otherwise DM
   message: string;
   created_at: string;
+}
+
+export interface Meeting {
+  id: string;
+  project_id: string;
+  title: string;
+  description: string;
+  start_time: string;
+  end_time: string;
+  platform: 'Google Meet' | 'Microsoft Teams' | 'Zoom' | 'In-App Room' | 'Other';
+  link: string;
+  organizer_id: string;
+  attendee_ids: string[];
+  notes?: string;
 }
