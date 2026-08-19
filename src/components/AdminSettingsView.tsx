@@ -22,6 +22,9 @@ export const AdminSettingsView: React.FC = () => {
   } = useTaskFlow();
 
   const [activeTab, setActiveTab] = useState('2');
+  const [activeTab, setActiveTab] = useState(currentUser?.role === 'Super Admin' ? '1' : '2');
+  const [userModalVisible, setUserModalVisible] = useState(false);
+  const [userForm] = Form.useForm();
   
   const [projectModalVisible, setProjectModalVisible] = useState(false);
   const [projectForm] = Form.useForm();
@@ -117,6 +120,67 @@ export const AdminSettingsView: React.FC = () => {
 
       <Card bordered={false}>
         <Tabs activeKey={activeTab} onChange={setActiveTab}>
+          {/* TAB 1: User Directory */}
+          {isSuperAdmin && (
+            <Tabs.TabPane tab={<span><UserOutlined />User Management</span>} key="1">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Title level={4} style={{ margin: 0 }}>Organization Directory</Title>
+              {isSuperAdmin && (
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => setUserModalVisible(true)} className="gradient-btn">
+                  Add User
+                </Button>
+              )}
+            </div>
+
+            <Table 
+              dataSource={users} 
+              rowKey="id"
+              pagination={false}
+              columns={[
+                {
+                  title: 'User Profile',
+                  key: 'profile',
+                  render: (_, record) => (
+                    <Space>
+                      <Avatar src={record.avatarUrl} />
+                      <div>
+                        <strong>{record.name}</strong>
+                        <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>{record.email}</div>
+                      </div>
+                    </Space>
+                  )
+                },
+                {
+                  title: 'Role',
+                  dataIndex: 'role',
+                  render: (role: Role) => {
+                    let color = 'blue';
+                    if (role === 'Super Admin') color = 'red';
+                    else if (role === 'Project Manager') color = 'purple';
+                    else if (role === 'Team Lead') color = 'orange';
+                    return <Tag color={color}>{role}</Tag>;
+                  }
+                },
+                {
+                  title: 'Actions',
+                  key: 'actions',
+                  render: (_, record) => (
+                    <Button 
+                      danger 
+                      type="text" 
+                      icon={<UserDeleteOutlined />} 
+                      onClick={() => handleRemoveUser(record.id)}
+                      disabled={!isSuperAdmin || record.id === currentUser?.id}
+                    >
+                      Remove
+                    </Button>
+                  )
+                }
+              ]}
+            />
+          </Tabs.TabPane>
+          )}
+
           {/* TAB 2: Board Workflow customization */}
           <Tabs.TabPane tab={<span><SettingOutlined />Board Workflow Columns</span>} key="2">
             <div style={{ marginBottom: 20 }}>
