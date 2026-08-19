@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { 
-  Card, Tabs, Table, Button, Space, Avatar, Select, 
+  Card, Tabs, Table, Button, Space, Select, 
   Input, Form, Modal, Typography, Tag, InputNumber, 
   Alert, message, List 
 } from 'antd';
 import { 
-  UserOutlined, UserDeleteOutlined, PlusOutlined, 
+  PlusOutlined, 
   SettingOutlined, SaveOutlined, SafetyCertificateOutlined,
   CloseOutlined, AuditOutlined, ProjectOutlined, DeleteOutlined
 } from '@ant-design/icons';
 import { useTaskFlow } from '../context/TaskFlowContext';
-import type { Role } from '../types';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -18,10 +17,11 @@ const { Option } = Select;
 export const AdminSettingsView: React.FC = () => {
   const { 
     currentUser, users, currentProject, workflows, 
-    updateWorkflowColumns, addUser, removeUser, activityLogs,
+    updateWorkflowColumns, activityLogs,
     projects, createProject, deleteProject
   } = useTaskFlow();
 
+  const [activeTab, setActiveTab] = useState('2');
   const [activeTab, setActiveTab] = useState(currentUser?.role === 'Super Admin' ? '1' : '2');
   const [userModalVisible, setUserModalVisible] = useState(false);
   const [userForm] = Form.useForm();
@@ -42,13 +42,6 @@ export const AdminSettingsView: React.FC = () => {
   const isSuperAdmin = currentUser?.role === 'Super Admin';
   const isProjectAdmin = currentUser?.role === 'Project Manager' || currentUser?.role === 'Super Admin';
 
-  const handleAddUser = (values: { name: string; email: string; role: Role }) => {
-    addUser(values.name, values.email, values.role);
-    setUserModalVisible(false);
-    userForm.resetFields();
-    message.success(`User ${values.name} added successfully.`);
-  };
-
   const handleCreateProject = (values: { name: string; key: string; description: string; type: 'Scrum' | 'Kanban' | 'Timesheet' }) => {
     createProject(values.name, values.key, values.description, values.type);
     setProjectModalVisible(false);
@@ -66,24 +59,6 @@ export const AdminSettingsView: React.FC = () => {
       onOk: () => {
         deleteProject(projectId);
         message.success('Project deleted successfully.');
-      }
-    });
-  };
-
-  const handleRemoveUser = (userId: string) => {
-    if (userId === currentUser?.id) {
-      message.error('You cannot delete your own account while logged in!');
-      return;
-    }
-    const u = users.find(user => user.id === userId);
-    Modal.confirm({
-      title: 'Remove User',
-      content: `Are you sure you want to remove ${u?.name} from the organization?`,
-      okText: 'Remove',
-      okType: 'danger',
-      onOk: () => {
-        removeUser(userId);
-        message.success('User removed successfully.');
       }
     });
   };
@@ -353,37 +328,6 @@ export const AdminSettingsView: React.FC = () => {
           </Tabs.TabPane>
         </Tabs>
       </Card>
-
-      {/* ADD USER MODAL */}
-      <Modal
-        title="Add Team Member"
-        open={userModalVisible}
-        onCancel={() => setUserModalVisible(false)}
-        footer={null}
-      >
-        <Form form={userForm} layout="vertical" onFinish={handleAddUser}>
-          <Form.Item name="name" label="Full Name" rules={[{ required: true, message: 'Please input full name!' }]}>
-            <Input placeholder="e.g. John Doe" />
-          </Form.Item>
-          <Form.Item name="email" label="Email Address" rules={[{ required: true, message: 'Please input email!' }, { type: 'email', message: 'Input a valid email!' }]}>
-            <Input placeholder="e.g. john@taskflow.io" />
-          </Form.Item>
-          <Form.Item name="role" label="System Role" rules={[{ required: true }]}>
-            <Select placeholder="Select role">
-              <Option value="Developer">Developer</Option>
-              <Option value="Team Lead">Team Lead</Option>
-              <Option value="Project Manager">Project Manager</Option>
-              <Option value="Viewer">Viewer</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item style={{ display: 'flex', justifyContent: 'flex-end', margin: 0 }}>
-            <Space>
-              <Button onClick={() => setUserModalVisible(false)}>Cancel</Button>
-              <Button type="primary" htmlType="submit">Add User</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
 
       {/* CREATE PROJECT MODAL */}
       <Modal

@@ -1,4 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Layout, Menu, Select, Avatar, Dropdown, Button, ConfigProvider, theme, Modal, Form, Input, DatePicker, Row, Col, Space, Typography, message, Badge, Drawer, FloatButton } from 'antd';
+import {
+  DashboardOutlined,
+  OrderedListOutlined,
+  ProjectOutlined,
+  BarChartOutlined,
+  SettingOutlined,
 import { Layout, Menu, Select, Avatar, Dropdown, Button, ConfigProvider, theme, Modal, Form, Input, DatePicker, Row, Col, Space, Typography, message, Badge } from 'antd';
 import { 
   DashboardOutlined, 
@@ -14,7 +21,9 @@ import {
   CalendarOutlined,
   FolderOutlined,
   ClockCircleOutlined,
-  MessageOutlined
+  MessageOutlined,
+  TeamOutlined,
+  VideoCameraOutlined
 } from '@ant-design/icons';
 import { TaskFlowProvider, useTaskFlow } from './context/TaskFlowContext';
 import { LoginScreen } from './components/LoginScreen';
@@ -23,6 +32,7 @@ import { BacklogView } from './components/BacklogView';
 import { BoardView } from './components/BoardView';
 import { ReportsView } from './components/ReportsView';
 import { AdminSettingsView } from './components/AdminSettingsView';
+import { UserManagementView } from './components/UserManagementView';
 import { TimesheetView } from './components/TimesheetView';
 import { TimelineView } from './components/TimelineView';
 import { CalendarView } from './components/CalendarView';
@@ -31,6 +41,8 @@ import { SplashScreen } from './components/SplashScreen';
 import { ProjectsView } from './components/ProjectsView';
 import { ProfileView } from './components/ProfileView';
 import { IssueDetailModal } from './components/IssueDetailModal';
+import { MeetingsView } from './components/MeetingsView';
+import { LiveMeetingRoom } from './components/LiveMeetingRoom';
 import type { Issue } from './types';
 import './App.css';
 
@@ -40,10 +52,12 @@ const { Header, Content, Sider } = Layout;
 const { Option } = Select;
 
 const TaskFlowApp: React.FC = () => {
+  const {
+    currentUser, logout, currentProject, projects, setCurrentProject,
   const { 
     currentUser, logout, currentProject,
     currentView, setView, darkMode, toggleDarkMode, users, epics, sprints, createIssue,
-    activeTimer, stopTimer, cancelTimer, notifications, markNotificationRead
+    activeTimer, stopTimer, cancelTimer, notifications, markNotificationRead, activeMeeting
   } = useTaskFlow();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -54,6 +68,7 @@ const TaskFlowApp: React.FC = () => {
   // Local timer ticking state
   const [headerTimerStr, setHeaderTimerStr] = useState('00:00:00');
   const [isHeaderTimerModalVisible, setIsHeaderTimerModalVisible] = useState(false);
+  const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
 
   useEffect(() => {
     let interval: any = null;
@@ -136,9 +151,9 @@ const TaskFlowApp: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       {/* Sider Navigation */}
-      <Sider 
-        collapsible 
-        collapsed={collapsed} 
+      <Sider
+        collapsible
+        collapsed={collapsed}
         onCollapse={setCollapsed}
         className="app-layout-sider"
         theme="dark"
@@ -151,9 +166,9 @@ const TaskFlowApp: React.FC = () => {
           {!collapsed && <span style={{ fontSize: 16, fontWeight: 700, color: 'white', letterSpacing: 0.5 }}>TaskFlow</span>}
         </div>
 
-        <Menu 
-          theme="dark" 
-          mode="inline" 
+        <Menu
+          theme="dark"
+          mode="inline"
           selectedKeys={[currentView]}
           onClick={({ key }) => setView(key)}
         >
@@ -163,15 +178,22 @@ const TaskFlowApp: React.FC = () => {
           <Menu.Item key="Dashboard" icon={<DashboardOutlined />}>
             Dashboard
           </Menu.Item>
+          <Menu.Item key="Meetings" icon={<VideoCameraOutlined />}>
+            Meetings
+          </Menu.Item>
+          <Menu.Item key="Chat" icon={<TeamOutlined />}>
+            Channels
+          </Menu.Item>
           <Menu.Item key="Backlog" icon={<OrderedListOutlined />}>
             Backlog
           </Menu.Item>
           <Menu.Item key="Board" icon={<ProjectOutlined />}>
             Active Board
           </Menu.Item>
-          <Menu.Item key="Chat" icon={<MessageOutlined />}>
-            Team Chat
+          <Menu.Item key="RoutingBoard" icon={<ProjectOutlined />}>
+            Routing Board
           </Menu.Item>
+
           <Menu.Item key="Timesheet" icon={<CalendarOutlined />}>
             Timesheet
           </Menu.Item>
@@ -191,6 +213,11 @@ const TaskFlowApp: React.FC = () => {
           <Menu.Item key="Profile" icon={<UserOutlined />}>
             My Profile
           </Menu.Item>
+          {currentUser.role === 'Super Admin' && (
+            <Menu.Item key="UsersRoles" icon={<TeamOutlined />}>
+              Users & Roles
+            </Menu.Item>
+          )}
           {currentUser.role !== 'Viewer' && (
             <Menu.Item key="Admin" icon={<SettingOutlined />}>
               Settings
@@ -204,32 +231,61 @@ const TaskFlowApp: React.FC = () => {
         {/* Header toolbar */}
         <Header className="app-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ fontWeight: 600, color: '#8c8c8c' }}>Project:</span>
+            <Select
+              value={currentProject?.id}
+              style={{ width: 220 }}
+              onChange={(id) => {
+                const proj = projects.find(p => p.id === id);
+                if (proj) {
+                  setCurrentProject(proj);
+                  if (proj.type === 'Timesheet') {
+                    setView('Timesheet');
+                  } else if (currentView === 'Timesheet') {
+                    setView('Dashboard');
+                  }
+                }
+              }}
+            >
+              {projects.map(p => (
+                <Option key={p.id} value={p.id}>{p.name} ({p.key})</Option>
+              ))}
+            </Select>
+            <Button
+              type="primary"
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => setIsQuickCreateVisible(true)}
+              disabled={currentUser.role === 'Viewer'}
+            >
+              Quick Create
+            </Button>
             {/* Removed Project Selector and Quick Create */}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
             {/* Live Work Timer in Header */}
             {activeTimer && (
-              <div 
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 8, 
-                  background: 'rgba(255, 77, 79, 0.08)', 
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: 'rgba(255, 77, 79, 0.08)',
                   border: '1px solid rgba(255, 77, 79, 0.2)',
-                  borderRadius: 20, 
+                  borderRadius: 20,
                   padding: '4px 14px',
                   cursor: 'pointer'
                 }}
                 onClick={() => setIsHeaderTimerModalVisible(true)}
               >
-                <span className="timer-pulse-dot" style={{ 
-                  display: 'inline-block', 
-                  width: 8, 
-                  height: 8, 
-                  background: '#ff4d4f', 
+                <span className="timer-pulse-dot" style={{
+                  display: 'inline-block',
+                  width: 8,
+                  height: 8,
+                  background: '#ff4d4f',
                   borderRadius: '50%',
-                  animation: 'fadeIn 1s infinite alternate' 
+                  animation: 'fadeIn 1s infinite alternate'
                 }}></span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: '#ff4d4f', fontFamily: 'monospace' }}>
                   {headerTimerStr}
@@ -241,15 +297,15 @@ const TaskFlowApp: React.FC = () => {
             )}
 
             {/* Notifications */}
-            <Dropdown 
-              menu={{ 
-                items: notifications.filter(n => !n.read_flag && n.user_id === currentUser?.id).length > 0 
+            <Dropdown
+              menu={{
+                items: notifications.filter(n => !n.read_flag && n.user_id === currentUser?.id).length > 0
                   ? notifications.filter(n => !n.read_flag && n.user_id === currentUser?.id).map(n => ({
-                      key: n.id,
-                      label: <div onClick={() => markNotificationRead(n.id)} style={{ maxWidth: 250, whiteSpace: 'normal' }}>{n.message}</div>
-                    }))
+                    key: n.id,
+                    label: <div onClick={() => markNotificationRead(n.id)} style={{ maxWidth: 250, whiteSpace: 'normal' }}>{n.message}</div>
+                  }))
                   : [{ key: 'empty', label: 'No new notifications', disabled: true }]
-              }} 
+              }}
               trigger={['click']}
               placement="bottomRight"
             >
@@ -259,10 +315,10 @@ const TaskFlowApp: React.FC = () => {
             </Dropdown>
 
             {/* Dark Mode toggle */}
-            <Button 
-              type="text" 
-              shape="circle" 
-              icon={darkMode ? <BulbFilled style={{ color: '#fadb14' }} /> : <BulbOutlined />} 
+            <Button
+              type="text"
+              shape="circle"
+              icon={darkMode ? <BulbFilled style={{ color: '#fadb14' }} /> : <BulbOutlined />}
               onClick={toggleDarkMode}
             />
 
@@ -277,23 +333,32 @@ const TaskFlowApp: React.FC = () => {
         </Header>
 
         {/* Content routing */}
-        <Content style={{ margin: '16px', minHeight: 280 }}>
-          {currentView === 'Projects' && <ProjectsView />}
-          {currentView === 'Dashboard' && <DashboardView />}
-          {currentView === 'Backlog' && <BacklogView onSelectIssue={handleOpenIssueDetail} />}
-          {currentView === 'Board' && (
-            <BoardView 
-              onSelectIssue={handleOpenIssueDetail} 
-              onQuickCreateIssue={() => setIsQuickCreateVisible(true)} 
-            />
+        <Content style={{ margin: '16px', minHeight: 280, display: 'flex', flexDirection: 'column' }}>
+          {activeMeeting ? (
+            <LiveMeetingRoom />
+          ) : (
+            <>
+              {currentView === 'Projects' && <ProjectsView />}
+              {currentView === 'Dashboard' && <DashboardView />}
+              {currentView === 'Backlog' && <BacklogView onSelectIssue={handleOpenIssueDetail} />}
+              {currentView === 'Board' && (
+                <BoardView
+                  onSelectIssue={handleOpenIssueDetail}
+                  onQuickCreateIssue={() => setIsQuickCreateVisible(true)}
+                />
+              )}
+              {currentView === 'Meetings' && <MeetingsView />}
+
+              {currentView === 'Chat' && <TeamChatView />}
+              {currentView === 'Timesheet' && <TimesheetView />}
+              {currentView === 'Timeline' && <TimelineView />}
+              {currentView === 'Calendar' && <CalendarView />}
+              {currentView === 'Reports' && <ReportsView />}
+              {currentView === 'Profile' && <ProfileView />}
+              {currentView === 'UsersRoles' && <UserManagementView />}
+              {currentView === 'Admin' && <AdminSettingsView />}
+            </>
           )}
-          {currentView === 'Chat' && <TeamChatView />}
-          {currentView === 'Timesheet' && <TimesheetView />}
-          {currentView === 'Timeline' && <TimelineView />}
-          {currentView === 'Calendar' && <CalendarView />}
-          {currentView === 'Reports' && <ReportsView />}
-          {currentView === 'Profile' && <ProfileView />}
-          {currentView === 'Admin' && <AdminSettingsView />}
         </Content>
       </Layout>
 
@@ -337,7 +402,7 @@ const TaskFlowApp: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
-          
+
           <Form.Item name="title" label="Summary" rules={[{ required: true, message: 'Please input issue summary!' }]}>
             <Input placeholder="Keep it short and descriptive" />
           </Form.Item>
@@ -442,15 +507,35 @@ const TaskFlowApp: React.FC = () => {
           </Form>
         </div>
       </Modal>
+
+      {/* Channels Drawer & Floating Button */}
+      <Drawer
+        title="Channels & Teams"
+        placement="right"
+        width={700}
+        onClose={() => setIsChatDrawerOpen(false)}
+        open={isChatDrawerOpen}
+        styles={{ body: { padding: 0 } }}
+      >
+        <TeamChatView />
+      </Drawer>
+
+      <FloatButton
+        icon={<TeamOutlined />}
+        type="primary"
+        style={{ right: 24, bottom: 24, width: 56, height: 56 }}
+        onClick={() => setIsChatDrawerOpen(true)}
+        tooltip="Open Channels"
+      />
     </Layout>
   );
 };
 
 const App: React.FC = () => {
   const { darkMode } = useTaskFlow();
-  
+
   return (
-    <ConfigProvider 
+    <ConfigProvider
       theme={{
         algorithm: darkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
