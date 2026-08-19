@@ -46,7 +46,7 @@ body {
   position: relative;
   width: 55%;
   min-height: 100vh;
-  background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 40%, #6d28d9 70%, #4c1d95 100%);
+  background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 40%, #0284c7 70%, #075985 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -186,10 +186,10 @@ body {
 .lp-label {
   font-size: 13px;
   font-weight: 600;
-  color: #5b21b6;
+  color: #0369a1;
 }
 .lp-input-icon {
-  color: #a78bfa !important;
+  color: #38bdf8 !important;
 }
 .lp-input {
   border-radius: 10px !important;
@@ -197,20 +197,20 @@ body {
 }
 .lp-input:focus,
 .lp-input:hover {
-  border-color: #7c3aed !important;
-  box-shadow: 0 0 0 3px rgba(124,58,237,0.08) !important;
+  border-color: #0ea5e9 !important;
+  box-shadow: 0 0 0 3px rgba(14,165,233,0.08) !important;
 }
 
 /* Sign in button */
 .lp-btn {
-  background: linear-gradient(135deg, #5b21b6, #7c3aed) !important;
+  background: linear-gradient(135deg, #0369a1, #0ea5e9) !important;
   border: none !important;
   border-radius: 10px !important;
   height: 46px !important;
   font-size: 15px !important;
   font-weight: 600 !important;
   letter-spacing: 0.3px;
-  box-shadow: 0 4px 14px rgba(109,40,217,0.35) !important;
+  box-shadow: 0 4px 14px rgba(2,132,199,0.35) !important;
   transition: opacity 0.2s, transform 0.15s !important;
 }
 .lp-btn:hover {
@@ -261,9 +261,9 @@ body {
   gap: 6px;
 }
 .lp-demo-chip:hover {
-  background: #ede9fe;
-  border-color: #7c3aed;
-  box-shadow: 0 2px 8px rgba(124,58,237,0.12);
+  background: #e0f2fe;
+  border-color: #0ea5e9;
+  box-shadow: 0 2px 8px rgba(14,165,233,0.12);
   transform: translateY(-1px);
 }
 .lp-demo-chip:active { transform: scale(0.97); }

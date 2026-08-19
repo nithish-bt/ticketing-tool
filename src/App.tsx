@@ -6,12 +6,18 @@ import {
   ProjectOutlined,
   BarChartOutlined,
   SettingOutlined,
+import { Layout, Menu, Select, Avatar, Dropdown, Button, ConfigProvider, theme, Modal, Form, Input, DatePicker, Row, Col, Space, Typography, message, Badge } from 'antd';
+import { 
+  DashboardOutlined, 
+  OrderedListOutlined, 
+  ProjectOutlined, 
+  BarChartOutlined, 
+  SettingOutlined, 
   LogoutOutlined,
   UserOutlined,
   BulbOutlined,
   BulbFilled,
   BellOutlined,
-  PlusOutlined,
   CalendarOutlined,
   FolderOutlined,
   ClockCircleOutlined,
@@ -48,6 +54,8 @@ const { Option } = Select;
 const TaskFlowApp: React.FC = () => {
   const {
     currentUser, logout, currentProject, projects, setCurrentProject,
+  const { 
+    currentUser, logout, currentProject,
     currentView, setView, darkMode, toggleDarkMode, users, epics, sprints, createIssue,
     activeTimer, stopTimer, cancelTimer, notifications, markNotificationRead, activeMeeting
   } = useTaskFlow();
@@ -137,6 +145,8 @@ const TaskFlowApp: React.FC = () => {
     setIsQuickCreateVisible(false);
     quickCreateForm.resetFields();
   };
+
+  const canChangeAssignee = ['Super Admin', 'Project Manager', 'Tester'].includes(currentUser?.role || '');
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -250,6 +260,7 @@ const TaskFlowApp: React.FC = () => {
             >
               Quick Create
             </Button>
+            {/* Removed Project Selector and Quick Create */}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
@@ -403,7 +414,7 @@ const TaskFlowApp: React.FC = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="assignee_id" label="Assignee">
-                <Select placeholder="Select Member" allowClear>
+                <Select placeholder="Select Member" allowClear disabled={!canChangeAssignee}>
                   {users.map(u => (
                     <Option key={u.id} value={u.id}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
