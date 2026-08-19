@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Button, Input, Typography, Tooltip, Select, Row, Col } from 'antd';
 import { 
   CloseOutlined, SaveOutlined, AudioOutlined, AudioMutedOutlined, 
-  VideoCameraOutlined 
+  VideoCameraOutlined, DesktopOutlined 
 } from '@ant-design/icons';
 import { JitsiMeeting } from '@jitsi/react-sdk';
 import { useTaskFlow } from '../context/TaskFlowContext';
+import { io, Socket } from 'socket.io-client';
 
 const { Title, Text } = Typography;
 
@@ -16,10 +17,42 @@ export const LiveMeetingRoom: React.FC = () => {
   const [notes, setNotes] = useState(meeting?.notes || '');
   const [isSaving, setIsSaving] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
   
   // Pre-join state
   const [micEnabled, setMicEnabled] = useState(false);
   const [videoEnabled, setVideoEnabled] = useState(false);
+  const [screenShareEnabled, setScreenShareEnabled] = useState(false);
+
+  // Initialize Socket.IO connection
+  useEffect(() => {
+    if (!meeting || !isJoined) return;
+
+    // Connect to Socket.IO server (fallback to localhost:3001)
+    const newSocket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001', {
+      query: { roomId: meeting.id, userId: currentUser?.id }
+    });
+
+    setSocket(newSocket);
+
+    // Listen for remote note updates
+    newSocket.on('notesUpdated', (updatedNotes: string) => {
+      setNotes(updatedNotes);
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [meeting?.id, isJoined, currentUser?.id]);
+
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newNotes = e.target.value;
+    setNotes(newNotes);
+    
+    if (socket) {
+      socket.emit('updateNotes', { roomId: meeting?.id, notes: newNotes });
+    }
+  };
 
   // Auto-save debounce effect
   useEffect(() => {
@@ -73,24 +106,39 @@ export const LiveMeetingRoom: React.FC = () => {
               </Title>
               
               <div style={{ position: 'absolute', bottom: 24, display: 'flex', gap: 16 }}>
-                <Button 
-                  shape="circle" 
-                  size="large"
-                  type={micEnabled ? 'default' : 'primary'}
-                  danger={!micEnabled}
-                  icon={micEnabled ? <AudioOutlined /> : <AudioMutedOutlined />} 
-                  onClick={() => setMicEnabled(!micEnabled)}
-                  style={{ width: 56, height: 56, background: micEnabled ? 'rgba(255,255,255,0.1)' : undefined, color: micEnabled ? '#fff' : undefined, border: micEnabled ? '1px solid rgba(255,255,255,0.3)' : undefined }}
-                />
-                <Button 
-                  shape="circle" 
-                  size="large"
-                  type={videoEnabled ? 'default' : 'primary'}
-                  danger={!videoEnabled}
-                  icon={<VideoCameraOutlined />} 
-                  onClick={() => setVideoEnabled(!videoEnabled)}
-                  style={{ width: 56, height: 56, background: videoEnabled ? 'rgba(255,255,255,0.1)' : undefined, color: videoEnabled ? '#fff' : undefined, border: videoEnabled ? '1px solid rgba(255,255,255,0.3)' : undefined }}
-                />
+                <Tooltip title={micEnabled ? 'Mute Microphone' : 'Unmute Microphone'}>
+                  <Button 
+                    shape="circle" 
+                    size="large"
+                    type={micEnabled ? 'default' : 'primary'}
+                    danger={!micEnabled}
+                    icon={micEnabled ? <AudioOutlined /> : <AudioMutedOutlined />} 
+                    onClick={() => setMicEnabled(!micEnabled)}
+                    style={{ width: 56, height: 56, background: micEnabled ? 'rgba(255,255,255,0.1)' : undefined, color: micEnabled ? '#fff' : undefined, border: micEnabled ? '1px solid rgba(255,255,255,0.3)' : undefined }}
+                  />
+                </Tooltip>
+                <Tooltip title={videoEnabled ? 'Turn Off Camera' : 'Turn On Camera'}>
+                  <Button 
+                    shape="circle" 
+                    size="large"
+                    type={videoEnabled ? 'default' : 'primary'}
+                    danger={!videoEnabled}
+                    icon={<VideoCameraOutlined />} 
+                    onClick={() => setVideoEnabled(!videoEnabled)}
+                    style={{ width: 56, height: 56, background: videoEnabled ? 'rgba(255,255,255,0.1)' : undefined, color: videoEnabled ? '#fff' : undefined, border: videoEnabled ? '1px solid rgba(255,255,255,0.3)' : undefined }}
+                  />
+                </Tooltip>
+                <Tooltip title={screenShareEnabled ? 'Stop Screen Share' : 'Start Screen Share'}>
+                  <Button 
+                    shape="circle" 
+                    size="large"
+                    type={screenShareEnabled ? 'default' : 'primary'}
+                    danger={!screenShareEnabled}
+                    icon={<DesktopOutlined />} 
+                    onClick={() => setScreenShareEnabled(!screenShareEnabled)}
+                    style={{ width: 56, height: 56, background: screenShareEnabled ? 'rgba(255,255,255,0.1)' : undefined, color: screenShareEnabled ? '#fff' : undefined, border: screenShareEnabled ? '1px solid rgba(255,255,255,0.3)' : undefined }}
+                  />
+                </Tooltip>
               </div>
 
               <div style={{ position: 'absolute', top: 20, left: 24 }}>
@@ -150,7 +198,7 @@ export const LiveMeetingRoom: React.FC = () => {
             startWithAudioMuted: !micEnabled,
             startWithVideoMuted: !videoEnabled,
             disableModeratorIndicator: true,
-            startScreenSharing: true,
+            startScreenSharing: screenShareEnabled,
             enableEmailInStats: false
           }}
           interfaceConfigOverwrite={{
@@ -218,7 +266,7 @@ export const LiveMeetingRoom: React.FC = () => {
         <div style={{ flex: 1, padding: 16 }}>
           <Input.TextArea
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            onChange={handleNotesChange}
             placeholder="Type meeting notes, action items, and decisions here..."
             style={{ 
               height: '100%', 

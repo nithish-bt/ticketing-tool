@@ -171,6 +171,9 @@ const TaskFlowApp: React.FC = () => {
           <Menu.Item key="Meetings" icon={<VideoCameraOutlined />}>
             Meetings
           </Menu.Item>
+          <Menu.Item key="Chat" icon={<TeamOutlined />}>
+            Channels
+          </Menu.Item>
           <Menu.Item key="Backlog" icon={<OrderedListOutlined />}>
             Backlog
           </Menu.Item>
@@ -494,9 +497,9 @@ const TaskFlowApp: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Team Chat Drawer & Floating Button */}
+      {/* Channels Drawer & Floating Button */}
       <Drawer
-        title="Team Chat"
+        title="Channels & Teams"
         placement="right"
         width={700}
         onClose={() => setIsChatDrawerOpen(false)}
@@ -507,11 +510,11 @@ const TaskFlowApp: React.FC = () => {
       </Drawer>
 
       <FloatButton
-        icon={<MessageOutlined />}
+        icon={<TeamOutlined />}
         type="primary"
         style={{ right: 24, bottom: 24, width: 56, height: 56 }}
         onClick={() => setIsChatDrawerOpen(true)}
-        tooltip="Open Team Chat"
+        tooltip="Open Channels"
       />
     </Layout>
   );

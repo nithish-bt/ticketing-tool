@@ -129,8 +129,9 @@ export interface ActivityLog {
 export interface ChatMessage {
   id: string;
   project_id: string;
+  channel_id: string | null; // null means DM, otherwise channel
   sender_id: string;
-  receiver_id: string | null; // null means Team Channel, otherwise DM
+  receiver_id: string | null; // null means Channel, otherwise DM
   message: string;
   created_at: string;
 }
@@ -138,6 +139,7 @@ export interface ChatMessage {
 export interface Meeting {
   id: string;
   project_id: string;
+  channel_id?: string;
   title: string;
   description: string;
   start_time: string;
@@ -147,4 +149,11 @@ export interface Meeting {
   organizer_id: string;
   attendee_ids: string[];
   notes?: string;
+}
+
+export interface Channel {
+  id: string;
+  project_id: string;
+  name: string;
+  description: string;
 }

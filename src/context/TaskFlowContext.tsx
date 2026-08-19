@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type {
   User, Project, Sprint, Epic, Issue, Comment,
-  Worklog, Notification, ActivityLog, Role, ProjectMember, ChatMessage, Meeting
+  Worklog, Notification, ActivityLog, Role, ProjectMember, ChatMessage, Meeting, Channel
 } from '../types';
 
 interface WorkflowColumn {
@@ -28,6 +28,7 @@ interface TaskFlowContextType {
   notifications: Notification[];
   workflows: ProjectWorkflow[];
   meetings: Meeting[];
+  channels: Channel[];
   activeMeeting: string | null;
   currentProject: Project | null;
   currentView: string;
@@ -40,6 +41,8 @@ interface TaskFlowContextType {
   register: (name: string, email: string, role: Role) => void;
   createProject: (name: string, key: string, description: string, type: 'Scrum' | 'Kanban' | 'Timesheet') => void;
   deleteProject: (id: string) => void;
+  createChannel: (projectId: string, name: string, description: string) => void;
+  deleteChannel: (id: string) => void;
   createSprint: (name: string, startDate: string, endDate: string, goal: string) => void;
   startSprint: (sprintId: string) => void;
   closeSprint: (sprintId: string, targetSprintId: string | null) => void;
@@ -61,7 +64,7 @@ interface TaskFlowContextType {
   startTimer: (issueId: string) => void;
   stopTimer: (note?: string) => void;
   cancelTimer: () => void;
-  sendMessage: (projectId: string, receiverId: string | null, message: string) => void;
+  sendMessage: (projectId: string, channelId: string | null, receiverId: string | null, message: string) => void;
   projectMembers: ProjectMember[];
   addProjectMember: (projectId: string, userId: string, role: Role) => void;
   removeProjectMember: (projectId: string, userId: string) => void;
@@ -151,8 +154,14 @@ const initialNotifications: Notification[] = [
 ];
 
 const initialChatMessages: ChatMessage[] = [
-  { id: 'msg1', project_id: 'p1', sender_id: 'u3', receiver_id: null, message: 'Welcome to the project chat everyone!', created_at: '2026-07-21T09:00:00Z' },
-  { id: 'msg2', project_id: 'p1', sender_id: 'u4', receiver_id: 'u3', message: 'Hey Maya, could you review my PR for the Kanban board when you have a moment?', created_at: '2026-07-22T10:00:00Z' }
+  { id: 'msg1', project_id: 'p1', channel_id: 'ch1', sender_id: 'u3', receiver_id: null, message: 'Welcome to the project chat everyone!', created_at: '2026-07-21T09:00:00Z' },
+  { id: 'msg2', project_id: 'p1', channel_id: null, sender_id: 'u4', receiver_id: 'u3', message: 'Hey Maya, could you review my PR for the Kanban board when you have a moment?', created_at: '2026-07-22T10:00:00Z' }
+];
+
+const initialChannels: Channel[] = [
+  { id: 'ch1', project_id: 'p1', name: 'General', description: 'General project discussions' },
+  { id: 'ch2', project_id: 'p1', name: 'Development', description: 'Development and coding discussions' },
+  { id: 'ch3', project_id: 'p2', name: 'General', description: 'Marketing general discussions' }
 ];
 
 const initialWorkflows: ProjectWorkflow[] = [
@@ -243,6 +252,7 @@ export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [projectMembers, setProjectMembers] = useState<ProjectMember[]>(() => loadState('projectMembers', initialProjectMembers));
   const [roles, setRoles] = useState<string[]>(() => loadState('roles', initialRoles));
   const [meetings, setMeetings] = useState<Meeting[]>(() => loadState('meetings', initialMeetings));
+  const [channels, setChannels] = useState<Channel[]>(() => loadState('channels', initialChannels));
   const [activeMeeting, setActiveMeeting] = useState<string | null>(null);
   
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
@@ -289,13 +299,14 @@ export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('taskflow_projectMembers', JSON.stringify(projectMembers));
     localStorage.setItem('taskflow_roles', JSON.stringify(roles));
     localStorage.setItem('taskflow_meetings', JSON.stringify(meetings));
+    localStorage.setItem('taskflow_channels', JSON.stringify(channels));
     localStorage.setItem('taskflow_currentUser', JSON.stringify(currentUser));
     localStorage.setItem('taskflow_currentProject', JSON.stringify(currentProject));
     localStorage.setItem('taskflow_currentView', JSON.stringify(currentView));
     localStorage.setItem('taskflow_darkMode', JSON.stringify(darkMode));
     localStorage.setItem('taskflow_attachments', JSON.stringify(attachments));
     localStorage.setItem('taskflow_activeTimer', JSON.stringify(activeTimer));
-  }, [users, projects, sprints, epics, issues, comments, worklogs, activityLogs, chatMessages, notifications, workflows, projectMembers, currentUser, currentProject, currentView, darkMode, attachments, activeTimer, meetings]);
+  }, [users, projects, sprints, epics, issues, comments, worklogs, activityLogs, chatMessages, notifications, workflows, projectMembers, currentUser, currentProject, currentView, darkMode, attachments, activeTimer, meetings, channels]);
 
   // UI routes state
   const setView = (view: string) => {
@@ -421,6 +432,20 @@ export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const remaining = projects.filter(p => p.id !== id);
       setCurrentProjectState(remaining.length > 0 ? remaining[0] : null);
     }
+  };
+
+  const createChannel = (projectId: string, name: string, description: string) => {
+    const newChannel: Channel = {
+      id: `ch_${Date.now()}`,
+      project_id: projectId,
+      name,
+      description
+    };
+    setChannels(prev => [...prev, newChannel]);
+  };
+
+  const deleteChannel = (id: string) => {
+    setChannels(prev => prev.filter(c => c.id !== id));
   };
 
   // Sprint Operations
@@ -750,11 +775,12 @@ export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setActiveTimer(null);
   };
 
-  const sendMessage = (projectId: string, receiverId: string | null, message: string) => {
+  const sendMessage = (projectId: string, channelId: string | null, receiverId: string | null, message: string) => {
     if (!currentUser) return;
     const newMsg: ChatMessage = {
       id: `msg_${Date.now()}`,
       project_id: projectId,
+      channel_id: channelId,
       sender_id: currentUser.id,
       receiver_id: receiverId,
       message,
@@ -814,6 +840,7 @@ export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       notifications: notifications.filter(n => n.user_id === currentUser?.id),
       workflows,
       meetings,
+      channels,
       activeMeeting,
       currentProject,
       currentView,
@@ -826,6 +853,8 @@ export const TaskFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       register,
       createProject,
       deleteProject,
+      createChannel,
+      deleteChannel,
       createSprint,
       startSprint,
       closeSprint,

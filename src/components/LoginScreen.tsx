@@ -12,6 +12,7 @@ import {
 } from '@ant-design/icons';
 import { useTaskFlow } from '../context/TaskFlowContext';
 import type { Role } from '../types';
+import { loginApi } from '../services/login';
 
 
 const { Text, Link } = Typography;
@@ -34,32 +35,43 @@ const FEATURES = [
 ];
 
 export const LoginScreen: React.FC = () => {
-  const { login, register, users } = useTaskFlow();
+  const { login, loginWithUserData, register, users } = useTaskFlow();
   const [formMode, setFormMode] = useState<'login' | 'register' | 'forgot'>('login');
   const [errorMsg, setErrorMsg]   = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<Role>('Developer');
+  const [loading, setLoading] = useState(false);
 
   const [loginForm] = Form.useForm();
 
-  const onFinishLogin = (values: { username?: string; password?: string }) => {
+  const onFinishLogin = async (values: { username?: string; password?: string }) => {
     setErrorMsg(null);
     if (!values.username || !values.password) {
       setErrorMsg('Please input your username and password.');
       return;
     }
-    // Local authentication — match by username (name prefix) or email
-    const input = values.username.trim().toLowerCase();
-    const matched = users.find(
-      u =>
-        u.name.toLowerCase() === input ||
-        u.name.toLowerCase().startsWith(input) ||
-        u.email.toLowerCase().split('@')[0] === input
-    );
-    if (matched) {
-      login(matched.id);
-    } else {
-      setErrorMsg('Invalid username. Please try one of the demo accounts below.');
+    
+    setLoading(true);
+    try {
+      const result = await loginApi(values.username, values.password);
+      
+      if (result.status === 'success') {
+        localStorage.setItem('access_token', result.access_token);
+        loginWithUserData({
+          userId: result.data.userId,
+          userName: result.data.userName,
+          designation: result.data.designation,
+          roleId: result.data.roleId,
+          password: values.password
+        });
+      } else {
+        setErrorMsg(result.message || 'Login failed. Please check your credentials.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || 'Network error. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -148,7 +160,7 @@ export const LoginScreen: React.FC = () => {
           {/* ── LOGIN ── */}
           {formMode === 'login' && (
             <>
-              <Form name="login" form={loginForm} onFinish={onFinishLogin} layout="vertical" size="large" initialValues={{ username: 'nithish', password: 'password123' }}>
+              <Form name="login" form={loginForm} onFinish={onFinishLogin} layout="vertical" size="large" initialValues={{ username: 'admin', password: 'user' }}>
                 <Form.Item name="username" label={<span className="lp-label">Username</span>}
                   rules={[{ required: true, message: 'Please input your username!' }]}>
                   <Input prefix={<UserOutlined className="lp-input-icon" />} placeholder="Enter your username" className="lp-input" />
@@ -158,7 +170,7 @@ export const LoginScreen: React.FC = () => {
                   <Input.Password prefix={<KeyOutlined className="lp-input-icon" />} placeholder="Enter your password" className="lp-input" />
                 </Form.Item>
                 <Form.Item style={{ marginBottom: 12 }}>
-                  <Button type="primary" htmlType="submit" block className="lp-btn">
+                  <Button type="primary" htmlType="submit" block className="lp-btn" loading={loading}>
                     Sign In
                   </Button>
                 </Form.Item>
