@@ -35,7 +35,7 @@ const FEATURES = [
 ];
 
 export const LoginScreen: React.FC = () => {
-  const { login, loginWithUserData, register, users } = useTaskFlow();
+  const { loginWithUserData, register, users } = useTaskFlow();
   const [formMode, setFormMode] = useState<'login' | 'register' | 'forgot'>('login');
   const [errorMsg, setErrorMsg]   = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);

@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Select, Avatar, Dropdown, Button, ConfigProvider, theme, Modal, Form, Input, DatePicker, Row, Col, Space, Typography, message, Badge, Drawer, FloatButton } from 'antd';
-import {
-  DashboardOutlined,
-  OrderedListOutlined,
-  ProjectOutlined,
-  BarChartOutlined,
-  SettingOutlined,
-import { Layout, Menu, Select, Avatar, Dropdown, Button, ConfigProvider, theme, Modal, Form, Input, DatePicker, Row, Col, Space, Typography, message, Badge } from 'antd';
 import { 
   DashboardOutlined, 
   OrderedListOutlined, 
@@ -15,13 +8,13 @@ import {
   SettingOutlined, 
   LogoutOutlined,
   UserOutlined,
+  PlusOutlined,
   BulbOutlined,
   BulbFilled,
   BellOutlined,
   CalendarOutlined,
   FolderOutlined,
   ClockCircleOutlined,
-  MessageOutlined,
   TeamOutlined,
   VideoCameraOutlined
 } from '@ant-design/icons';
@@ -52,10 +45,8 @@ const { Header, Content, Sider } = Layout;
 const { Option } = Select;
 
 const TaskFlowApp: React.FC = () => {
-  const {
-    currentUser, logout, currentProject, projects, setCurrentProject,
   const { 
-    currentUser, logout, currentProject,
+    currentUser, logout, currentProject, projects, setCurrentProject,
     currentView, setView, darkMode, toggleDarkMode, users, epics, sprints, createIssue,
     activeTimer, stopTimer, cancelTimer, notifications, markNotificationRead, activeMeeting
   } = useTaskFlow();
