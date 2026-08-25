@@ -217,13 +217,13 @@ export const LiveMeetingRoom: React.FC = () => {
             displayName: currentUser.name,
             email: currentUser.email
           }}
-          onApiReady={(externalApi) => {
+          onApiReady={(externalApi: any) => {
             // Can add event listeners here if needed, e.g., videoConferenceLeft
             externalApi.addListener('videoConferenceLeft', () => {
               leaveMeeting();
             });
           }}
-          getIFrameRef={(iframeRef) => {
+          getIFrameRef={(iframeRef: any) => {
             iframeRef.style.height = '100%';
             iframeRef.style.width = '100%';
             iframeRef.style.border = 'none';

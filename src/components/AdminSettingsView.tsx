@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { 
   Card, Tabs, Table, Button, Space, Select, 
   Input, Form, Modal, Typography, Tag, InputNumber, 
-  Alert, message, List 
+  Alert, message, List, Avatar
 } from 'antd';
+import type { Role } from '../types';
 import { 
   PlusOutlined, 
   SettingOutlined, SaveOutlined, SafetyCertificateOutlined,
-  CloseOutlined, AuditOutlined, ProjectOutlined, DeleteOutlined
+  CloseOutlined, AuditOutlined, ProjectOutlined, DeleteOutlined,
+  UserOutlined, UserDeleteOutlined
 } from '@ant-design/icons';
 import { useTaskFlow } from '../context/TaskFlowContext';
 
@@ -21,10 +23,7 @@ export const AdminSettingsView: React.FC = () => {
     projects, createProject, deleteProject
   } = useTaskFlow();
 
-  const [activeTab, setActiveTab] = useState('2');
   const [activeTab, setActiveTab] = useState(currentUser?.role === 'Super Admin' ? '1' : '2');
-  const [userModalVisible, setUserModalVisible] = useState(false);
-  const [userForm] = Form.useForm();
   
   const [projectModalVisible, setProjectModalVisible] = useState(false);
   const [projectForm] = Form.useForm();
@@ -61,6 +60,10 @@ export const AdminSettingsView: React.FC = () => {
         message.success('Project deleted successfully.');
       }
     });
+  };
+
+  const handleRemoveUser = (_id: string) => {
+    message.info('Remove user not implemented');
   };
 
   // Workflow customizer helpers
@@ -126,7 +129,7 @@ export const AdminSettingsView: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <Title level={4} style={{ margin: 0 }}>Organization Directory</Title>
               {isSuperAdmin && (
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => setUserModalVisible(true)} className="gradient-btn">
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => message.info('User creation not implemented')} className="gradient-btn">
                   Add User
                 </Button>
               )}
