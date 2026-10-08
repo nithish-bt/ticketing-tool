@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Card, Tabs, Table, Button, Space, Avatar, Select, 
   Input, Form, Modal, Typography, Tag, Alert, message, List 
@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import { useTaskFlow } from '../context/TaskFlowContext';
 import type { Role } from '../types';
+import { fetchUsersApi, type ApiUser } from '../services/user';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -23,6 +24,24 @@ export const UserManagementView: React.FC = () => {
   const [userForm] = Form.useForm();
   
   const [newRoleName, setNewRoleName] = useState('');
+  
+  const [apiUsers, setApiUsers] = useState<ApiUser[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      setLoadingUsers(true);
+      try {
+        const data = await fetchUsersApi();
+        setApiUsers(data);
+      } catch (error) {
+        message.error('Failed to load users from API');
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+    loadUsers();
+  }, []);
 
   const isSuperAdmin = currentUser?.role === 'Super Admin';
 
@@ -95,27 +114,41 @@ export const UserManagementView: React.FC = () => {
             </div>
 
             <Table 
-              dataSource={users} 
-              rowKey="id"
+              dataSource={apiUsers.length > 0 ? apiUsers : users} 
+              rowKey={(record: any) => record.id || record.email || Math.random().toString()}
+              loading={loadingUsers}
               pagination={false}
               columns={[
                 {
                   title: 'User Profile',
                   key: 'profile',
-                  render: (_, record) => (
+                  render: (_, record: any) => (
                     <Space>
-                      <Avatar src={record.avatarUrl} />
+                      <Avatar src={record.avatarUrl} icon={<UserOutlined />} />
                       <div>
-                        <strong>{record.name}</strong>
-                        <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>{record.email}</div>
+                        <strong>{record.name || 'Unknown'}</strong>
+                        <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>{record.email || 'No email'}</div>
                       </div>
                     </Space>
                   )
                 },
                 {
+                  title: 'Phone',
+                  dataIndex: 'phone',
+                  key: 'phone',
+                  render: (phone: string) => phone || <Text type="secondary">N/A</Text>
+                },
+                {
+                  title: 'Password',
+                  dataIndex: 'password',
+                  key: 'password',
+                  render: (password: string) => password ? <Text type="secondary">{password}</Text> : <Text type="secondary">N/A</Text>
+                },
+                {
                   title: 'Role',
                   dataIndex: 'role',
                   render: (role: string) => {
+                    if (!role) return <Text type="secondary">N/A</Text>;
                     let color = 'blue';
                     if (role === 'Super Admin') color = 'red';
                     else if (role === 'Project Manager') color = 'purple';
@@ -127,7 +160,7 @@ export const UserManagementView: React.FC = () => {
                 {
                   title: 'Actions',
                   key: 'actions',
-                  render: (_, record) => (
+                  render: (_, record: any) => (
                     <Button 
                       danger 
                       type="text" 
