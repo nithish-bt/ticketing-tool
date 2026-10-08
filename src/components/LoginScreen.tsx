@@ -110,12 +110,10 @@ export const LoginScreen: React.FC = () => {
       <div className="lp-left">
         {/* Brand */}
         <div className="lp-brand">
-          <div className="lp-brand-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="rgba(255,255,255,0.9)" />
-              <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="rgba(255,255,255,0.7)"
-                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+          <div className="lp-brand-icon" style={{ padding: 0, background: 'transparent', border: 'none' }}>
+            <div className="shiny-logo-container" style={{ width: 44, height: 44 }}>
+              <img src="/logo.png" alt="Company Logo" className="shiny-logo" />
+            </div>
           </div>
           <div>
             <div className="lp-brand-name">TaskFlow</div>
@@ -140,6 +138,16 @@ export const LoginScreen: React.FC = () => {
               <span className="lp-feature-label">{f.label}</span>
             </div>
           ))}
+        </div>
+        
+        {/* Powered By */}
+        <div style={{ marginTop: 'auto', paddingTop: 40 }}>
+          <div className="powered-by-wrapper" style={{ justifyContent: 'flex-start' }}>
+            <span className="powered-by-text">POWERED BY</span>
+            <div className="shiny-logo-container" style={{ width: 28, height: 28 }}>
+              <img src="/logo.png" alt="Company Logo" className="shiny-logo" />
+            </div>
+          </div>
         </div>
 
         {/* Decorative circles */}

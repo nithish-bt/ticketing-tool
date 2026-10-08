@@ -149,72 +149,85 @@ const TaskFlowApp: React.FC = () => {
         className="app-layout-sider"
         theme="dark"
       >
-        <div className="app-logo-area">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#1677ff" />
-            <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="#722ed1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          {!collapsed && <span style={{ fontSize: 16, fontWeight: 700, color: 'white', letterSpacing: 0.5 }}>TaskFlow</span>}
+        <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 48px)' }}>
+          <div className="app-logo-area">
+            <div className="shiny-logo-container" style={{ width: 28, height: 28, marginRight: 8 }}>
+              <img src="/logo.png" alt="Company Logo" className="shiny-logo" />
+            </div>
+            {!collapsed && <span style={{ fontSize: 16, fontWeight: 700, color: 'white', letterSpacing: 0.5 }}>TaskFlow</span>}
+          </div>
+
+          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+            <Menu
+              theme="dark"
+              mode="inline"
+              selectedKeys={[currentView]}
+              onClick={({ key }) => setView(key)}
+            >
+              <Menu.Item key="Projects" icon={<FolderOutlined />}>
+                Projects
+              </Menu.Item>
+              <Menu.Item key="Dashboard" icon={<DashboardOutlined />}>
+                Dashboard
+              </Menu.Item>
+              <Menu.Item key="Meetings" icon={<VideoCameraOutlined />}>
+                Meetings
+              </Menu.Item>
+              <Menu.Item key="Chat" icon={<TeamOutlined />}>
+                Channels
+              </Menu.Item>
+              <Menu.Item key="Backlog" icon={<OrderedListOutlined />}>
+                Backlog
+              </Menu.Item>
+              <Menu.Item key="Board" icon={<ProjectOutlined />}>
+                Active Board
+              </Menu.Item>
+              <Menu.Item key="RoutingBoard" icon={<ProjectOutlined />}>
+                Routing Board
+              </Menu.Item>
+
+              <Menu.Item key="Timesheet" icon={<CalendarOutlined />}>
+                Timesheet
+              </Menu.Item>
+              {(currentUser.role === 'Developer' || currentUser.role === 'Tester') && (
+                <>
+                  <Menu.Item key="Timeline" icon={<ClockCircleOutlined />}>
+                    Timeline
+                  </Menu.Item>
+                  <Menu.Item key="Calendar" icon={<CalendarOutlined />}>
+                    Calendar
+                  </Menu.Item>
+                </>
+              )}
+              <Menu.Item key="Reports" icon={<BarChartOutlined />}>
+                Reports
+              </Menu.Item>
+              <Menu.Item key="Profile" icon={<UserOutlined />}>
+                My Profile
+              </Menu.Item>
+              {currentUser.role === 'Super Admin' && (
+                <Menu.Item key="UsersRoles" icon={<TeamOutlined />}>
+                  Users & Roles
+                </Menu.Item>
+              )}
+              {currentUser.role !== 'Viewer' && (
+                <Menu.Item key="Admin" icon={<SettingOutlined />}>
+                  Settings
+                </Menu.Item>
+              )}
+            </Menu>
+          </div>
+          
+          {/* Sidebar Bottom Logo */}
+          <div style={{ padding: '16px 0', display: 'flex', justifyContent: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+             <div className="powered-by-wrapper" style={{ flexDirection: collapsed ? 'column' : 'row', gap: collapsed ? 4 : 8 }}>
+               {!collapsed && <span className="powered-by-text" style={{ fontSize: 10 }}>POWERED BY</span>}
+               <div className="shiny-logo-container" style={{ width: 20, height: 20 }}>
+                 <img src="/logo.png" alt="Company Logo" className="shiny-logo" />
+               </div>
+             </div>
+          </div>
         </div>
-
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[currentView]}
-          onClick={({ key }) => setView(key)}
-        >
-          <Menu.Item key="Projects" icon={<FolderOutlined />}>
-            Projects
-          </Menu.Item>
-          <Menu.Item key="Dashboard" icon={<DashboardOutlined />}>
-            Dashboard
-          </Menu.Item>
-          <Menu.Item key="Meetings" icon={<VideoCameraOutlined />}>
-            Meetings
-          </Menu.Item>
-          <Menu.Item key="Chat" icon={<TeamOutlined />}>
-            Channels
-          </Menu.Item>
-          <Menu.Item key="Backlog" icon={<OrderedListOutlined />}>
-            Backlog
-          </Menu.Item>
-          <Menu.Item key="Board" icon={<ProjectOutlined />}>
-            Active Board
-          </Menu.Item>
-          <Menu.Item key="RoutingBoard" icon={<ProjectOutlined />}>
-            Routing Board
-          </Menu.Item>
-
-          <Menu.Item key="Timesheet" icon={<CalendarOutlined />}>
-            Timesheet
-          </Menu.Item>
-          {(currentUser.role === 'Developer' || currentUser.role === 'Tester') && (
-            <>
-              <Menu.Item key="Timeline" icon={<ClockCircleOutlined />}>
-                Timeline
-              </Menu.Item>
-              <Menu.Item key="Calendar" icon={<CalendarOutlined />}>
-                Calendar
-              </Menu.Item>
-            </>
-          )}
-          <Menu.Item key="Reports" icon={<BarChartOutlined />}>
-            Reports
-          </Menu.Item>
-          <Menu.Item key="Profile" icon={<UserOutlined />}>
-            My Profile
-          </Menu.Item>
-          {currentUser.role === 'Super Admin' && (
-            <Menu.Item key="UsersRoles" icon={<TeamOutlined />}>
-              Users & Roles
-            </Menu.Item>
-          )}
-          {currentUser.role !== 'Viewer' && (
-            <Menu.Item key="Admin" icon={<SettingOutlined />}>
-              Settings
-            </Menu.Item>
-          )}
-        </Menu>
       </Sider>
 
       {/* Main Container */}
