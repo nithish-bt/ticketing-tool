@@ -112,7 +112,7 @@ export const LoginScreen: React.FC = () => {
         <div className="lp-brand">
           <div className="lp-brand-icon" style={{ padding: 0, background: 'transparent', border: 'none' }}>
             <div className="shiny-logo-container" style={{ width: 44, height: 44 }}>
-              <img src="/logo.png" alt="Company Logo" className="shiny-logo" />
+              <img src="/logo.png" alt="TaskFlow Logo" className="shiny-logo" />
             </div>
           </div>
           <div>
@@ -145,7 +145,7 @@ export const LoginScreen: React.FC = () => {
           <div className="powered-by-wrapper" style={{ justifyContent: 'flex-start' }}>
             <span className="powered-by-text">POWERED BY</span>
             <div className="shiny-logo-container" style={{ width: 28, height: 28 }}>
-              <img src="/logo.png" alt="Company Logo" className="shiny-logo" />
+              <img src="/logo.png" alt="TaskFlow Logo" className="shiny-logo" />
             </div>
           </div>
         </div>

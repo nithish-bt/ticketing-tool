@@ -150,11 +150,11 @@ const TaskFlowApp: React.FC = () => {
         theme="dark"
       >
         <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 48px)' }}>
-          <div className="app-logo-area">
-            <div className="shiny-logo-container" style={{ width: 28, height: 28, marginRight: 8 }}>
-              <img src="/logo.png" alt="Company Logo" className="shiny-logo" />
+          <div className="app-logo-area" style={{ justifyContent: collapsed ? 'center' : 'flex-start', padding: collapsed ? '0 8px' : '0 20px', transition: 'all 0.2s' }}>
+            <div className="shiny-logo-container" style={{ width: 32, height: 32, marginRight: collapsed ? 0 : 10, flexShrink: 0 }}>
+              <img src="/logo.png" alt="TaskFlow Logo" className="shiny-logo" />
             </div>
-            {!collapsed && <span style={{ fontSize: 16, fontWeight: 700, color: 'white', letterSpacing: 0.5 }}>TaskFlow</span>}
+            {!collapsed && <span style={{ fontSize: 16, fontWeight: 700, color: 'white', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>TaskFlow</span>}
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
@@ -222,8 +222,8 @@ const TaskFlowApp: React.FC = () => {
           <div style={{ padding: '16px 0', display: 'flex', justifyContent: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
              <div className="powered-by-wrapper" style={{ flexDirection: collapsed ? 'column' : 'row', gap: collapsed ? 4 : 8 }}>
                {!collapsed && <span className="powered-by-text" style={{ fontSize: 10 }}>POWERED BY</span>}
-               <div className="shiny-logo-container" style={{ width: 20, height: 20 }}>
-                 <img src="/logo.png" alt="Company Logo" className="shiny-logo" />
+               <div className="shiny-logo-container" style={{ width: 22, height: 22 }}>
+                 <img src="/logo.png" alt="TaskFlow Logo" className="shiny-logo" />
                </div>
              </div>
           </div>
