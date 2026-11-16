@@ -12,12 +12,12 @@ import {
 } from '@ant-design/icons';
 import { useTaskFlow } from '../context/TaskFlowContext';
 import type { Role } from '../types';
-import { loginApi } from '../services/login';
-
+import { STATIC_ACCOUNTS, STATIC_PASSWORDS, DEFAULT_STATIC_CREDENTIALS } from '../services/login';
 
 const { Text, Link } = Typography;
 
 const DEMO_ACCOUNTS = [
+  { username: 'admin',   role: 'Super Admin',     color: '#722ed1' },
   { username: 'nithish', role: 'Super Admin',    color: '#531dab' },
   { username: 'nithya',  role: 'Project Manager', color: '#1d39c4' },
   { username: 'maya',    role: 'Team Lead',        color: '#0958d9' },
@@ -44,35 +44,63 @@ export const LoginScreen: React.FC = () => {
 
   const [loginForm] = Form.useForm();
 
-  const onFinishLogin = async (values: { username?: string; password?: string }) => {
+  const onFinishLogin = (values: { username?: string; password?: string }) => {
     setErrorMsg(null);
-    if (!values.username || !values.password) {
+    const username = values.username?.trim();
+    const password = values.password?.trim();
+
+    if (!username || !password) {
       setErrorMsg('Please input your username and password.');
       return;
     }
     
     setLoading(true);
-    try {
-      const result = await loginApi(values.username, values.password);
-      
-      if (result.status === 'success') {
-        localStorage.setItem('access_token', result.access_token);
+    setTimeout(() => {
+      const lowerUser = username.toLowerCase();
+      const staticAcc = STATIC_ACCOUNTS[lowerUser];
+      const matchedUser = users.find(
+        u => u.id.toLowerCase() === lowerUser ||
+             u.email.toLowerCase() === lowerUser ||
+             u.name.toLowerCase() === lowerUser
+      );
+
+      const isValidPassword = 
+        STATIC_PASSWORDS.includes(password) || 
+        (matchedUser?.password && matchedUser.password === password);
+
+      if (staticAcc && isValidPassword) {
+        localStorage.setItem('access_token', `static-token-${Date.now()}`);
         loginWithUserData({
-          userId: result.data.userId,
-          userName: result.data.userName,
-          designation: result.data.designation,
-          roleId: result.data.roleId,
-          password: values.password
+          userId: staticAcc.userId,
+          userName: staticAcc.userName,
+          designation: staticAcc.designation,
+          roleId: staticAcc.roleId,
+          password: password,
         });
-      } else {
-        setErrorMsg(result.message || 'Login failed. Please check your credentials.');
+        setLoading(false);
+        return;
       }
-    } catch (err: any) {
-      console.error(err);
-      setErrorMsg(err.message || 'Network error. Please try again later.');
-    } finally {
+
+      if (matchedUser && (isValidPassword || !matchedUser.password)) {
+        localStorage.setItem('access_token', `static-token-${Date.now()}`);
+        loginWithUserData({
+          userId: matchedUser.id,
+          userName: matchedUser.name,
+          designation: matchedUser.role,
+          roleId: matchedUser.role === 'Super Admin' ? '1' : '2',
+          password: password,
+        });
+        setLoading(false);
+        return;
+      }
+
       setLoading(false);
-    }
+      if (!staticAcc && !matchedUser) {
+        setErrorMsg(`User "${username}" not found. Static login: username "admin", password "password"`);
+      } else {
+        setErrorMsg('Invalid password. For static login, please use password: password');
+      }
+    }, 250);
   };
 
   const onFinishRegister = (values: { name: string; email: string }) => {
@@ -168,7 +196,36 @@ export const LoginScreen: React.FC = () => {
           {/* ── LOGIN ── */}
           {formMode === 'login' && (
             <>
-              <Form name="login" form={loginForm} onFinish={onFinishLogin} layout="vertical" size="large" initialValues={{ username: 'admin', password: 'user' }}>
+              {/* Static Credentials Banner */}
+              <div style={{
+                background: '#f0f5ff',
+                border: '1px solid #adc6ff',
+                borderRadius: 8,
+                padding: '9px 12px',
+                marginBottom: 16,
+                fontSize: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                color: '#1d39c4'
+              }}>
+                <div>
+                  <span style={{ fontWeight: 600 }}>Static Login:</span>
+                  <span style={{ marginLeft: 6 }}>
+                    Username: <strong>admin</strong> | Password: <strong>password</strong>
+                  </span>
+                </div>
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ padding: 0, height: 'auto', fontSize: 12, fontWeight: 600 }}
+                  onClick={() => loginForm.setFieldsValue({ username: 'admin', password: 'password' })}
+                >
+                  Auto-fill
+                </Button>
+              </div>
+
+              <Form name="login" form={loginForm} onFinish={onFinishLogin} layout="vertical" size="large" initialValues={{ username: DEFAULT_STATIC_CREDENTIALS.username, password: DEFAULT_STATIC_CREDENTIALS.password }}>
                 <Form.Item name="username" label={<span className="lp-label">Username</span>}
                   rules={[{ required: true, message: 'Please input your username!' }]}>
                   <Input prefix={<UserOutlined className="lp-input-icon" />} placeholder="Enter your username" className="lp-input" />
@@ -190,11 +247,11 @@ export const LoginScreen: React.FC = () => {
 
               {/* Demo Accounts */}
               <div className="lp-demo-section">
-                <div className="lp-demo-label">Demo Accounts <span style={{ fontWeight: 400, opacity: 0.55 }}>— click to fill</span></div>
+                <div className="lp-demo-label">Demo Accounts <span style={{ fontWeight: 400, opacity: 0.55 }}>— click to fill credentials</span></div>
                 <div className="lp-demo-grid">
                   {DEMO_ACCOUNTS.map(acc => (
-                    <Tooltip key={acc.username} title={`Login as ${acc.username}`} placement="top">
-                      <div className="lp-demo-chip" onClick={() => loginForm.setFieldsValue({ username: acc.username })}>
+                    <Tooltip key={acc.username} title={`Login as ${acc.username} (${acc.role})`} placement="top">
+                      <div className="lp-demo-chip" onClick={() => loginForm.setFieldsValue({ username: acc.username, password: 'password' })}>
                         <span className="lp-demo-username">{acc.username}</span>
                         <Tag color={acc.color} style={{ margin: 0, fontSize: 9, lineHeight: '17px', padding: '0 5px' }}>{acc.role}</Tag>
                       </div>
