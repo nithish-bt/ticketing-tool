@@ -134,180 +134,149 @@ export const LoginScreen: React.FC = () => {
 
   return (
     <div className="lp-root">
-      {/* ── LEFT PANEL ─────────────────────────────── */}
-      <div className="lp-left">
-        {/* Brand */}
-        <div className="lp-brand">
-          <div className="lp-brand-icon" style={{ padding: 0, background: 'transparent', border: 'none' }}>
-            <div className="shiny-logo-container" style={{ width: 44, height: 44 }}>
-              <img src="/logo.png" alt="TaskFlow Logo" className="shiny-logo" />
-            </div>
-          </div>
-          <div>
-            <div className="lp-brand-name">TaskFlow</div>
-            <div className="lp-brand-edition">Enterprise Edition</div>
-          </div>
-        </div>
-
-        {/* Hero */}
-        <h1 className="lp-hero-title">
-          Manage Tasks,<br />Deliver Faster.
-        </h1>
-        <p className="lp-hero-sub">
-          The premier collaborative project &amp; issue tracker trusted by
-          software teams worldwide. Plan, track, and ship great software.
-        </p>
-
-        {/* Feature Cards */}
-        <div className="lp-feature-grid">
-          {FEATURES.map(f => (
-            <div className="lp-feature-card" key={f.label}>
-              <span className="lp-feature-icon">{f.icon}</span>
-              <span className="lp-feature-label">{f.label}</span>
-            </div>
-          ))}
-        </div>
-        
-        {/* Powered By */}
-        <div style={{ marginTop: 'auto', paddingTop: 40 }}>
-          <div className="powered-by-wrapper" style={{ justifyContent: 'flex-start' }}>
-            <span className="powered-by-text">POWERED BY</span>
-            <div className="shiny-logo-container" style={{ width: 28, height: 28 }}>
-              <img src="/logo.png" alt="TaskFlow Logo" className="shiny-logo" />
-            </div>
-          </div>
-        </div>
-
-        {/* Decorative circles */}
-        <div className="lp-circle lp-circle-1" />
-        <div className="lp-circle lp-circle-2" />
-      </div>
-
-      {/* ── RIGHT PANEL ────────────────────────────── */}
-      <div className="lp-right">
-        <div className="lp-form-box">
-          {/* Form header */}
-          <h2 className="lp-form-title">{modeTitle[formMode]}</h2>
-          <p className="lp-form-sub">{modeSubtitle[formMode]}</p>
-
-          {errorMsg   && <Alert message={errorMsg}   type="error"   showIcon closable style={{ marginBottom: 16 }} onClose={() => setErrorMsg(null)} />}
-          {successMsg && <Alert message={successMsg} type="success" showIcon closable style={{ marginBottom: 16 }} onClose={() => setSuccessMsg(null)} />}
-
-          {/* ── LOGIN ── */}
-          {formMode === 'login' && (
-            <>
-              {/* Static Credentials Banner */}
-              <div style={{
-                background: '#f0f5ff',
-                border: '1px solid #adc6ff',
-                borderRadius: 8,
-                padding: '9px 12px',
-                marginBottom: 16,
-                fontSize: 12,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                color: '#1d39c4'
-              }}>
-                <div>
-                  <span style={{ fontWeight: 600 }}>Static Login:</span>
-                  <span style={{ marginLeft: 6 }}>
-                    Username: <strong>admin</strong> | Password: <strong>password</strong>
-                  </span>
-                </div>
-                <Button
-                  type="link"
-                  size="small"
-                  style={{ padding: 0, height: 'auto', fontSize: 12, fontWeight: 600 }}
-                  onClick={() => loginForm.setFieldsValue({ username: 'admin', password: 'password' })}
-                >
-                  Auto-fill
-                </Button>
+      <main className="lp-card">
+        <section className="lp-left">
+          <div className="lp-form-box">
+            <div className="lp-brand">
+              <div className="shiny-logo-container lp-brand-logo">
+                <img src="/logo.png" alt="" className="shiny-logo" />
               </div>
+              <span className="lp-brand-name">TaskFlow</span>
+            </div>
 
-              <Form name="login" form={loginForm} onFinish={onFinishLogin} layout="vertical" size="large" initialValues={{ username: DEFAULT_STATIC_CREDENTIALS.username, password: DEFAULT_STATIC_CREDENTIALS.password }}>
-                <Form.Item name="username" label={<span className="lp-label">Username</span>}
-                  rules={[{ required: true, message: 'Please input your username!' }]}>
-                  <Input prefix={<UserOutlined className="lp-input-icon" />} placeholder="Enter your username" className="lp-input" />
+            <h1 className="lp-form-title">{formMode === 'login' ? 'Log in to your Account' : modeTitle[formMode]}</h1>
+            <p className="lp-form-sub">{modeSubtitle[formMode]}</p>
+
+            {errorMsg   && <Alert message={errorMsg}   type="error"   showIcon closable style={{ marginBottom: 16 }} onClose={() => setErrorMsg(null)} />}
+            {successMsg && <Alert message={successMsg} type="success" showIcon closable style={{ marginBottom: 16 }} onClose={() => setSuccessMsg(null)} />}
+
+            {formMode === 'login' && (
+              <>
+                <Form name="login" form={loginForm} onFinish={onFinishLogin} layout="vertical" size="large" initialValues={{ username: DEFAULT_STATIC_CREDENTIALS.username, password: DEFAULT_STATIC_CREDENTIALS.password }}>
+                  <Form.Item name="username" label={<span className="lp-label">Username</span>}
+                    rules={[{ required: true, message: 'Please input your username!' }]}>
+                    <Input prefix={<UserOutlined className="lp-input-icon" />} placeholder="Enter your username" className="lp-input" />
+                  </Form.Item>
+                  <Form.Item name="password" label={<span className="lp-label">Password</span>}
+                    rules={[{ required: true, message: 'Please input your password!' }]}>
+                    <Input.Password prefix={<KeyOutlined className="lp-input-icon" />} placeholder="Enter your password" className="lp-input" />
+                  </Form.Item>
+                  <div className="lp-forgot-link">
+                    <Link onClick={() => { setFormMode('forgot'); setErrorMsg(null); }}>Forgot Password?</Link>
+                  </div>
+                  <Form.Item style={{ marginBottom: 12 }}>
+                    <Button type="primary" htmlType="submit" block className="lp-btn" loading={loading}>
+                      Log In
+                    </Button>
+                  </Form.Item>
+                  <div className="lp-links lp-create-link">
+                    <Text>Don&apos;t have an account? <Link onClick={() => { setFormMode('register'); setErrorMsg(null); }}>Create an account</Link></Text>
+                  </div>
+                </Form>
+
+                <details className="lp-demo-section">
+                  <summary className="lp-demo-label">Demo accounts and access</summary>
+                  <div className="lp-demo-hint">
+                    <span>admin / password</span>
+                    <Button
+                      type="link"
+                      size="small"
+                      onClick={() => loginForm.setFieldsValue({ username: 'admin', password: 'password' })}
+                    >
+                      Fill login
+                    </Button>
+                  </div>
+                  <div className="lp-demo-grid">
+                    {DEMO_ACCOUNTS.map(acc => (
+                      <Tooltip key={acc.username} title={`Login as ${acc.username} (${acc.role})`} placement="top">
+                        <button
+                          type="button"
+                          className="lp-demo-chip"
+                          onClick={() => loginForm.setFieldsValue({ username: acc.username, password: 'password' })}
+                        >
+                          <span className="lp-demo-username">{acc.username}</span>
+                          <Tag color={acc.color} style={{ margin: 0, fontSize: 9, lineHeight: '17px', padding: '0 5px' }}>{acc.role}</Tag>
+                        </button>
+                      </Tooltip>
+                    ))}
+                  </div>
+                </details>
+              </>
+            )}
+
+            {formMode === 'register' && (
+              <Form name="register" onFinish={onFinishRegister} layout="vertical" size="large">
+                <Form.Item name="name" label={<span className="lp-label">Full Name</span>}
+                  rules={[{ required: true, message: 'Please input your full name!' }]}>
+                  <Input prefix={<UserAddOutlined className="lp-input-icon" />} placeholder="Your full name" className="lp-input" />
                 </Form.Item>
-                <Form.Item name="password" label={<span className="lp-label">Password</span>}
-                  rules={[{ required: true, message: 'Please input your password!' }]}>
-                  <Input.Password prefix={<KeyOutlined className="lp-input-icon" />} placeholder="Enter your password" className="lp-input" />
+                <Form.Item name="email" label={<span className="lp-label">Email Address</span>}
+                  rules={[{ required: true, message: 'Please input your email!' }, { type: 'email', message: 'Enter a valid email!' }]}>
+                  <Input prefix={<LoginOutlined className="lp-input-icon" />} placeholder="you@example.com" className="lp-input" />
+                </Form.Item>
+                <Form.Item label={<span className="lp-label">Role</span>} required>
+                  <Radio.Group value={selectedRole} onChange={e => setSelectedRole(e.target.value)}
+                    buttonStyle="solid" style={{ width: '100%', display: 'flex' }}>
+                    <Radio.Button value="Developer"      style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>Dev</Radio.Button>
+                    <Radio.Button value="Tester"         style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>Tester</Radio.Button>
+                    <Radio.Button value="Team Lead"      style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>Lead</Radio.Button>
+                    <Radio.Button value="Project Manager" style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>Mgr</Radio.Button>
+                  </Radio.Group>
                 </Form.Item>
                 <Form.Item style={{ marginBottom: 12 }}>
-                  <Button type="primary" htmlType="submit" block className="lp-btn" loading={loading}>
-                    Sign In
-                  </Button>
+                  <Button type="primary" htmlType="submit" block className="lp-btn">Sign Up</Button>
                 </Form.Item>
-                <div className="lp-links">
-                  <Link onClick={() => { setFormMode('register'); setErrorMsg(null); }}>Create Account</Link>
-                  <Link onClick={() => { setFormMode('forgot');   setErrorMsg(null); }}>Forgot Password?</Link>
+                <div className="lp-links" style={{ justifyContent: 'center' }}>
+                  <Text>Already have an account? <Link onClick={() => { setFormMode('login'); setErrorMsg(null); }}>Sign In</Link></Text>
                 </div>
               </Form>
+            )}
 
-              {/* Demo Accounts */}
-              <div className="lp-demo-section">
-                <div className="lp-demo-label">Demo Accounts <span style={{ fontWeight: 400, opacity: 0.55 }}>— click to fill credentials</span></div>
-                <div className="lp-demo-grid">
-                  {DEMO_ACCOUNTS.map(acc => (
-                    <Tooltip key={acc.username} title={`Login as ${acc.username} (${acc.role})`} placement="top">
-                      <div className="lp-demo-chip" onClick={() => loginForm.setFieldsValue({ username: acc.username, password: 'password' })}>
-                        <span className="lp-demo-username">{acc.username}</span>
-                        <Tag color={acc.color} style={{ margin: 0, fontSize: 9, lineHeight: '17px', padding: '0 5px' }}>{acc.role}</Tag>
-                      </div>
-                    </Tooltip>
-                  ))}
+            {formMode === 'forgot' && (
+              <Form name="forgot" onFinish={onFinishReset} layout="vertical" size="large">
+                <Form.Item name="email" label={<span className="lp-label">Email Address</span>}
+                  rules={[{ required: true, message: 'Please input your email!' }, { type: 'email', message: 'Enter a valid email!' }]}>
+                  <Input prefix={<KeyOutlined className="lp-input-icon" />} placeholder="you@example.com" className="lp-input" />
+                </Form.Item>
+                <Form.Item style={{ marginBottom: 12 }}>
+                  <Button type="primary" htmlType="submit" block className="lp-btn">Send Reset Link</Button>
+                </Form.Item>
+                <div className="lp-links" style={{ justifyContent: 'center' }}>
+                  <Link onClick={() => { setFormMode('login'); setErrorMsg(null); }}>← Back to Sign In</Link>
                 </div>
-              </div>
-            </>
-          )}
+              </Form>
+            )}
+          </div>
+        </section>
 
-          {/* ── REGISTER ── */}
-          {formMode === 'register' && (
-            <Form name="register" onFinish={onFinishRegister} layout="vertical" size="large">
-              <Form.Item name="name" label={<span className="lp-label">Full Name</span>}
-                rules={[{ required: true, message: 'Please input your full name!' }]}>
-                <Input prefix={<UserAddOutlined className="lp-input-icon" />} placeholder="Your full name" className="lp-input" />
-              </Form.Item>
-              <Form.Item name="email" label={<span className="lp-label">Email Address</span>}
-                rules={[{ required: true, message: 'Please input your email!' }, { type: 'email', message: 'Enter a valid email!' }]}>
-                <Input prefix={<LoginOutlined className="lp-input-icon" />} placeholder="you@example.com" className="lp-input" />
-              </Form.Item>
-              <Form.Item label={<span className="lp-label">Role</span>} required>
-                <Radio.Group value={selectedRole} onChange={e => setSelectedRole(e.target.value)}
-                  buttonStyle="solid" style={{ width: '100%', display: 'flex' }}>
-                  <Radio.Button value="Developer"      style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>Dev</Radio.Button>
-                  <Radio.Button value="Tester"         style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>Tester</Radio.Button>
-                  <Radio.Button value="Team Lead"      style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>Lead</Radio.Button>
-                  <Radio.Button value="Project Manager" style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>Mgr</Radio.Button>
-                </Radio.Group>
-              </Form.Item>
-              <Form.Item style={{ marginBottom: 12 }}>
-                <Button type="primary" htmlType="submit" block className="lp-btn">Sign Up</Button>
-              </Form.Item>
-              <div className="lp-links" style={{ justifyContent: 'center' }}>
-                <Text>Already have an account? <Link onClick={() => { setFormMode('login'); setErrorMsg(null); }}>Sign In</Link></Text>
+        <aside className="lp-right">
+          <div className="lp-promo">
+            <div className="lp-illustration" aria-hidden="true">
+              <div className="lp-illustration-glow" />
+              <div className="lp-connector lp-connector-horizontal" />
+              <div className="lp-connector lp-connector-vertical" />
+              <div className="lp-app-node lp-app-node-top"><TeamOutlined /></div>
+              <div className="lp-app-node lp-app-node-left"><AppstoreOutlined /></div>
+              <div className="lp-app-node lp-app-node-bottom"><BranchesOutlined /></div>
+              <div className="lp-task-card">
+                <div className="lp-task-card-top"><span /><span /><span /></div>
+                <div className="lp-task-row lp-task-row-heading" />
+                <div className="lp-task-item"><i className="lp-avatar lp-avatar-blue" /><span /><b /></div>
+                <div className="lp-task-item"><i className="lp-avatar lp-avatar-orange" /><span /><b /></div>
+                <div className="lp-task-item"><i className="lp-avatar lp-avatar-purple" /><span /><b /></div>
               </div>
-            </Form>
-          )}
-
-          {/* ── FORGOT ── */}
-          {formMode === 'forgot' && (
-            <Form name="forgot" onFinish={onFinishReset} layout="vertical" size="large">
-              <Form.Item name="email" label={<span className="lp-label">Email Address</span>}
-                rules={[{ required: true, message: 'Please input your email!' }, { type: 'email', message: 'Enter a valid email!' }]}>
-                <Input prefix={<KeyOutlined className="lp-input-icon" />} placeholder="you@example.com" className="lp-input" />
-              </Form.Item>
-              <Form.Item style={{ marginBottom: 12 }}>
-                <Button type="primary" htmlType="submit" block className="lp-btn">Send Reset Link</Button>
-              </Form.Item>
-              <div className="lp-links" style={{ justifyContent: 'center' }}>
-                <Link onClick={() => { setFormMode('login'); setErrorMsg(null); }}>← Back to Sign In</Link>
-              </div>
-            </Form>
-          )}
-        </div>
-      </div>
+            </div>
+            <h2 className="lp-promo-title">Connect with every application.</h2>
+            <p className="lp-promo-copy">Everything your team needs to plan, track, and deliver great work.</p>
+            <div className="lp-feature-list">
+              {FEATURES.map(f => (
+                <span className="lp-feature-item" key={f.label}>{f.icon}<span>{f.label}</span></span>
+              ))}
+            </div>
+            <div className="lp-promo-dots" aria-hidden="true"><i /><i /><i /></div>
+          </div>
+        </aside>
+      </main>
     </div>
   );
 };
