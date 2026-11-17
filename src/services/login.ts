@@ -1,16 +1,84 @@
-import { API_BASE_URL } from './api';
+import type { Role } from '../types';
 
-export const loginApi = async (username?: string, password?: string) => {
-  const response = await fetch(`${API_BASE_URL}/salesTracking/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  });
-  
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Network response was not ok');
-  }
+export interface StaticUserAccount {
+  username: string;
+  userId: string;
+  userName: string;
+  designation: string;
+  role: Role;
+  roleId: string;
+}
 
-  return response.json();
+export const DEFAULT_STATIC_CREDENTIALS = {
+  username: 'admin',
+  password: 'password',
+};
+
+export const STATIC_PASSWORDS = ['password', 'admin', 'user', 'admin123', '123456'];
+
+export const STATIC_ACCOUNTS: Record<string, StaticUserAccount> = {
+  admin: {
+    username: 'admin',
+    userId: 'u1',
+    userName: 'Admin',
+    role: 'Super Admin',
+    designation: 'Super Admin',
+    roleId: '1',
+  },
+  nithish: {
+    username: 'nithish',
+    userId: 'u1',
+    userName: 'Nithish SV',
+    role: 'Super Admin',
+    designation: 'Super Admin',
+    roleId: '1',
+  },
+  nithya: {
+    username: 'nithya',
+    userId: 'u2',
+    userName: 'Nithya Sree',
+    role: 'Project Manager',
+    designation: 'Project Manager',
+    roleId: '2',
+  },
+  maya: {
+    username: 'maya',
+    userId: 'u3',
+    userName: 'Maya',
+    role: 'Team Lead',
+    designation: 'Team Lead',
+    roleId: '3',
+  },
+  shyam: {
+    username: 'shyam',
+    userId: 'u4',
+    userName: 'Shyam',
+    role: 'Developer',
+    designation: 'Developer',
+    roleId: '4',
+  },
+  vijay: {
+    username: 'vijay',
+    userId: 'u5',
+    userName: 'Vijay',
+    role: 'Developer',
+    designation: 'Developer',
+    roleId: '4',
+  },
+  sara: {
+    username: 'sara',
+    userId: 'u7',
+    userName: 'Sara',
+    role: 'Tester',
+    designation: 'Tester',
+    roleId: '5',
+  },
+  anand: {
+    username: 'anand',
+    userId: 'u6',
+    userName: 'Anand',
+    role: 'Viewer',
+    designation: 'Viewer',
+    roleId: '6',
+  },
 };

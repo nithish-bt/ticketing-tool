@@ -39,20 +39,11 @@ export const SplashScreen: React.FC<{ onFinish: () => void }> = ({ onFinish }) =
     <div className={`splash-screen ${fadeClass}`}>
       <div className="splash-content">
         <div className="splash-logo">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#splash-grad1)" />
-            <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="url(#splash-grad2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <defs>
-              <linearGradient id="splash-grad1" x1="2" y1="2" x2="22" y2="12">
-                <stop offset="0%" stopColor="#1677ff" />
-                <stop offset="100%" stopColor="#722ed1" />
-              </linearGradient>
-              <linearGradient id="splash-grad2" x1="2" y1="12" x2="22" y2="22">
-                <stop offset="0%" stopColor="#722ed1" />
-                <stop offset="100%" stopColor="#00b96b" />
-              </linearGradient>
-            </defs>
-          </svg>
+          <img
+            src="/logo.png"
+            alt="TaskFlow Logo"
+            style={{ width: 84, height: 84, objectFit: 'contain', filter: 'drop-shadow(0 0 16px rgba(22, 119, 255, 0.5))' }}
+          />
         </div>
         <h1 className="splash-title">TaskFlow</h1>
         <p className="splash-subtitle">Manage &bull; Track &bull; Deliver</p>

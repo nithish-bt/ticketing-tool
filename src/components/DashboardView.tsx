@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Col, Row, Statistic, Progress, Timeline, Avatar, List, Tag, Badge, Empty, Typography, Button, Drawer, Divider } from 'antd';
+import { Card, Col, Row, Statistic, Progress, Timeline, Avatar, List, Tag, Badge, Empty, Typography, Button, Drawer, Divider, Space, Table } from 'antd';
 import { 
   ProjectOutlined, CheckCircleOutlined, InfoCircleOutlined,
   CalendarOutlined, FileTextOutlined, BellOutlined, HistoryOutlined
@@ -12,7 +12,7 @@ const { Title, Text, Paragraph } = Typography;
 export const DashboardView: React.FC = () => {
   const { 
     currentUser, currentProject, sprints, issues, 
-    activityLogs, notifications, users, markNotificationRead, clearNotifications 
+    activityLogs, notifications, users, worklogs, markNotificationRead, clearNotifications
   } = useTaskFlow();
 
   const [notifDrawerVisible, setNotifDrawerVisible] = useState(false);
@@ -33,9 +33,32 @@ export const DashboardView: React.FC = () => {
   const activeSprintDone = sprintIssues.filter(i => i.status === 'Done').length;
   const sprintCompletionPercent = activeSprintTotal > 0 ? Math.round((activeSprintDone / activeSprintTotal) * 100) : 0;
 
+  const isExecutive = currentUser?.role === 'Super Admin' || currentUser?.role === 'CEO';
+  const today = new Date();
+  const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const employeeSummaries = users
+    .filter(user => user.organization_id === currentUser?.organization_id && user.id !== currentUser?.id)
+    .map(user => ({
+      ...user,
+      hoursToday: worklogs
+        .filter(log => log.user_id === user.id && log.logged_date === todayString)
+        .reduce((total, log) => total + log.time_spent, 0),
+      assignedTasks: issues.filter(issue => issue.assignee_id === user.id)
+    }))
+    .sort((a, b) => b.hoursToday - a.hoursToday || a.name.localeCompare(b.name));
+
   // Find user by id utility
   const getUser = (id: string | null): User | undefined => {
     return users.find(u => u.id === id);
+  };
+
+  const getTaskStatusColor = (status: string) => {
+    switch (status) {
+      case 'Done': return 'green';
+      case 'In Progress': return 'blue';
+      case 'In Review': return 'purple';
+      default: return 'default';
+    }
   };
 
   // Format date readable
@@ -131,6 +154,65 @@ export const DashboardView: React.FC = () => {
           </Card>
         </Col>
       </Row>
+
+      {isExecutive && (
+        <Card
+          title="Employee hours & task status"
+          bordered={false}
+          className="dashboard-subcard employee-overview"
+          style={{ marginTop: 24 }}
+          extra={<Text type="secondary">{employeeSummaries.length} employees</Text>}
+        >
+          <Text type="secondary" className="employee-overview-caption">
+            Hours logged today and the current status of each employee’s assigned tasks.
+          </Text>
+          <Table
+            rowKey="id"
+            dataSource={employeeSummaries}
+            pagination={false}
+            scroll={{ x: 680 }}
+            columns={[
+              {
+                title: 'Employee',
+                key: 'employee',
+                width: 220,
+                render: (_, employee) => (
+                  <Space>
+                    <Avatar src={employee.avatarUrl} />
+                    <div>
+                      <div className="employee-name">{employee.name}</div>
+                      <Text type="secondary">{employee.role}</Text>
+                    </div>
+                  </Space>
+                )
+              },
+              {
+                title: 'Hours logged today',
+                dataIndex: 'hoursToday',
+                key: 'hoursToday',
+                width: 160,
+                render: (hours: number) => <strong>{hours.toFixed(2)} h</strong>
+              },
+              {
+                title: 'Assigned tasks & status',
+                key: 'assignedTasks',
+                render: (_, employee) => employee.assignedTasks.length > 0 ? (
+                  <Space wrap size={[4, 4]}>
+                    {employee.assignedTasks.map(task => (
+                      <Tag key={task.id} color={getTaskStatusColor(task.status)}>
+                        {task.key} · {task.status}
+                      </Tag>
+                    ))}
+                  </Space>
+                ) : (
+                  <Text type="secondary">No assigned tasks</Text>
+                )
+              }
+            ]}
+            locale={{ emptyText: <Empty description="No employees found." /> }}
+          />
+        </Card>
+      )}
 
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
         {/* Sprint Overview */}
